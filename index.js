@@ -4,14 +4,14 @@ var _ = require('underscore');
 var async = require('async');
 var ProxyAgent = require('proxy-agent');
 var request = require('request');
-
-var checkUrl = 'http://bitproxies.eu/api/v1/check';
+var url = require('url');
 
 var ProxyVerifier = module.exports = {
 
+	_checkUrl: 'http://bitproxies.eu/api/v1/check',
 	_proxyRelatedHeaderKeywords: ['via', 'proxy'],
 
-	checks: {
+	check: {
 
 		protocols: function(proxy, protocols, cb) {
 
@@ -108,27 +108,35 @@ var ProxyVerifier = module.exports = {
 
 				cb(null, anonymityLevel);
 			});
+		},
+
+		country: function(proxy, cb) {
+
 		}
 	},
 
-	request: function(method, url, options, cb) {
+	request: function(method, uri, options, cb) {
 
 		cb = _.last(arguments);
 		options || (options = {});
 
-		var requestOptions = {
+		var requestOptions = _.extend({}, _.omit(options, 'proxy', 'data'), {
 			method: method.toUpperCase(),
-			url: url,
+			url: uri,
 			headers: {}
-		};
+		});
 
 		if (options.proxy) {
 
 			var proxy = options.proxy;
 			var proxyProtocol = options.protocol || proxy.protocol || _.first(proxy.protocols);
-			var proxyUrl = proxyProtocol + '://' + proxy.ip_address + ':' + proxy.port;
+			var proxyOptions = _.extend(
+				{},
+				url.parse(proxyProtocol + '://' + proxy.ip_address + ':' + proxy.port),
+				options.proxyOptions || {}
+			);
 
-			requestOptions.agent = new ProxyAgent(proxyUrl);
+			requestOptions.agent = new ProxyAgent(proxyOptions);
 
 			if (proxy.auth) {
 				requestOptions.headers['Proxy-Authorization'] = proxy.auth;
@@ -189,27 +197,3 @@ var ProxyVerifier = module.exports = {
 		req.end();
 	}
 };
-
-// var testProxy = {
-// 	ip_address: '',
-// 	port: 1080,
-// 	protocols: ['socks4']
-// };
-
-// ProxyVerifier.checks.protocols(testProxy, function(error, result) {
-
-// 	if (error) {
-// 		console.log('error ', error);
-// 	} else {
-// 		console.log(result);
-// 	}
-// });
-
-// ProxyVerifier.checks.anonymityLevel(testProxy, function(error, anonymityLevel) {
-
-// 	if (error) {
-// 		console.log('error ', error);
-// 	} else {
-// 		console.log('anonymityLevel ', anonymityLevel);
-// 	}
-// });
