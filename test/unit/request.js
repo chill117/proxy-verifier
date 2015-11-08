@@ -27,6 +27,33 @@ describe('request(method, url[, options], cb)', function() {
 		expect(ProxyVerifier.request).to.be.a('function');
 	});
 
+	it('request should succeed', function(done) {
+
+		var host = appServer.http.address().address;
+		var port = appServer.http.address().port;
+		var url = 'http://' + host + ':' + port + '/check';
+
+		ProxyVerifier.request('get', url, function(error, data, status, headers) {
+
+			try {
+
+				expect(error).to.equal(null);
+				expect(status).to.equal(200);
+				expect(data).to.be.an('object');
+				expect(_.has(data, 'ip_address')).to.equal(true);
+				expect(_.has(data, 'headers')).to.equal(true);
+				expect(data.ip_address).to.equal('127.0.0.1');
+				expect(data.headers).to.be.an('object');
+				expect(data.headers.host).to.equal(host + ':' + port);
+
+			} catch (error) {
+				return done(error);
+			}
+
+			done();
+		});
+	});
+
 	describe('options', function() {
 
 		describe('proxy', function() {
@@ -43,6 +70,8 @@ describe('request(method, url[, options], cb)', function() {
 			after(function() {
 
 				proxyServer.close();
+				proxyServer.http.close();
+				proxyServer.https.close();
 			});
 
 			_.each(proxyProtocols, function(proxyProtocol) {
