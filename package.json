@@ -4,7 +4,6 @@
   "description": "Check that proxies are working, verify their anonymity level and country.",
   "main": "index.js",
   "scripts": {
-    "install": "node ./scripts/fetch-country-data.js",
     "test": "grunt test"
   },
   "repository": {
