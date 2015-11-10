@@ -1,6 +1,8 @@
 'use strict';
 
+var _ = require('underscore');
 var async = require('async');
+var Benchmark = require('benchmark');
 var expect = require('chai').expect;
 
 var ProxyVerifier = require('../../../');
@@ -61,39 +63,36 @@ describe('check.country(proxy, cb)', function() {
 
 	describe('performance', function() {
 
-		var targetNumProxies = 500000;
-		var manyProxies = [];
-
-		before(function() {
-
-			while (manyProxies.length < targetNumProxies) {
-				manyProxies.push.apply(manyProxies, proxies);
-			}
-		});
-
 		it('should check the country of many proxies quickly', function(done) {
 
-			this.timeout(4000);
+			this.timeout(30000);
 
-			var timeStarted = (new Date).getMilliseconds();
-			var timeCompleted;
+			var i = 0;
 
-			async.each(manyProxies, ProxyVerifier.check.country, function(error) {
+			var bench = new Benchmark(function(deferred) {
 
-				if (error) {
-					return done(error);
-				}
+				ProxyVerifier.check.country(proxies[i] || proxies[i = 0], function() {
+					deferred.resolve();
+				});
+				i++;
 
-				timeCompleted = (new Date).getMilliseconds();
+			}, {
+				async: true,
+				defer: true
+			});
+
+			bench.on('complete', function(result) {
 
 				try {
-					expect(timeCompleted - timeStarted < 3000).to.equal(true);
+					expect(result.target.hz > 500).to.equal(true);
 				} catch (error) {
 					return done(error);
 				}
 
 				done();
 			});
+
+			bench.run();
 		});
 	});
 });
