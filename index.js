@@ -119,42 +119,31 @@ var ProxyVerifier = module.exports = {
 
 		country: function(proxy, cb) {
 
-			var options = {};
+			var type = net.isIP(proxy.ip_address);
 
-			switch (net.isIP(proxy.ip_address)) {
-
-				case 4:
-					options.ipv4 = true;
-					break;
-
-				case 6:
-					options.ipv6 = true;
-					break;
-
-				default:
-					return cb(new Error('Invalid IP address.'));
+			if (type === 0) {
+				return cb(new Error('Invalid IP address.'));
 			}
 
-			ProxyVerifier.loadCountryData(options, function(error, countries) {
+			var list = countryData[type === 4 ? 'ipv4' : 'ipv6'];
 
-				if (error) {
-					return cb(error);
-				}
+			if (_.isUndefined(list)) {
+				return cb(new Error('Country data has not been loaded.'));
+			}
 
-				var list = countries[options.ipv4 ? 'ipv4' : 'ipv6'];
-				var ipInt = utils.ipv4ToInt(proxy.ip_address);
-				var index = _.sortedIndex(list, { rs: ipInt }, 'rs');
+			var ipInt = utils.ipv4ToInt(proxy.ip_address);
+			var index = _.sortedIndex(list, { rs: ipInt }, 'rs');
 
-				if (index === -1) {
-					return cb(new Error('Country not found.'));
-				}
+			if (index === -1) {
+				// Not found.
+				return cb(null, null);
+			}
 
-				if (_.isUndefined(list[++index])) {
-					index--;
-				}
+			if (_.isUndefined(list[--index])) {
+				index++;
+			}
 
-				cb(null, list[index].cc);
-			});
+			cb(null, list[index].cc);
 		}
 	},
 
@@ -268,7 +257,7 @@ var ProxyVerifier = module.exports = {
 			if (options.cache) {
 				// Cache the data in memory.
 				_.each(data, function(_data, key) {
-					countryData[key] = _data;
+					countryData[key] || (countryData[key] = _data);
 				});
 			}
 
@@ -282,7 +271,7 @@ var ProxyVerifier = module.exports = {
 			return cb(null, countryData.ipv4);
 		}
 
-		var dataFile = ProxyVerifier._dataDir + '/country-ipv4';
+		var dataFile = ProxyVerifier._dataDir + '/country-ipv4.json';
 
 		fs.readFile(dataFile, 'utf8', function(error, data) {
 
