@@ -73,6 +73,8 @@ describe('check.country(proxy, cb)', function() {
 
 		it('should check the country of many proxies quickly', function(done) {
 
+			this.timeout(4000);
+
 			var timeStarted = (new Date).getMilliseconds();
 			var timeCompleted;
 
@@ -85,7 +87,7 @@ describe('check.country(proxy, cb)', function() {
 				timeCompleted = (new Date).getMilliseconds();
 
 				try {
-					expect(timeCompleted - timeStarted < 1500).to.equal(true);
+					expect(timeCompleted - timeStarted < 3000).to.equal(true);
 				} catch (error) {
 					return done(error);
 				}
