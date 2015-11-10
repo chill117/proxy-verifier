@@ -2,12 +2,19 @@
 
 var _ = require('underscore');
 var async = require('async');
+var fs = require('fs');
+var net = require('net');
 var ProxyAgent = require('proxy-agent');
 var request = require('request');
 var url = require('url');
 
+var utils = require('./lib/utils');
+
+var countryData = {};
+
 var ProxyVerifier = module.exports = {
 
+	_dataDir: __dirname + '/data',
 	_checkUrl: 'http://bitproxies.eu/api/v1/check',
 	_proxyRelatedHeaderKeywords: ['via', 'proxy'],
 
@@ -112,6 +119,42 @@ var ProxyVerifier = module.exports = {
 
 		country: function(proxy, cb) {
 
+			var options = {};
+
+			switch (net.isIP(proxy.ip_address)) {
+
+				case 4:
+					options.ipv4 = true;
+					break;
+
+				case 6:
+					options.ipv6 = true;
+					break;
+
+				default:
+					return cb(new Error('Invalid IP address.'));
+			}
+
+			ProxyVerifier.loadCountryData(options, function(error, countries) {
+
+				if (error) {
+					return cb(error);
+				}
+
+				var list = countries[options.ipv4 ? 'ipv4' : 'ipv6'];
+				var ipInt = utils.ipv4ToInt(proxy.ip_address);
+				var index = _.sortedIndex(list, { rs: ipInt }, 'rs');
+
+				if (index === -1) {
+					return cb(new Error('Country not found.'));
+				}
+
+				if (_.isUndefined(list[++index])) {
+					index--;
+				}
+
+				cb(null, list[index].cc);
+			});
 		}
 	},
 
@@ -195,5 +238,74 @@ var ProxyVerifier = module.exports = {
 		});
 
 		req.end();
+	},
+
+	loadCountryData: function(options, cb) {
+
+		if (_.isUndefined(cb)) {
+			cb = options;
+			options = null;
+		}
+
+		options = _.defaults(options || {}, { ipv4: true, ipv6: false, cache: true });
+
+		var tasks = {};
+
+		if (options.ipv4) {
+			tasks.ipv4 = ProxyVerifier.loadIpv4CountryData;
+		}
+
+		if (options.ipv6) {
+			tasks.ipv6 = ProxyVerifier.loadIpv6CountryData;
+		}
+
+		async.parallel(tasks, function(error, data) {
+
+			if (error) {
+				return cb(error);
+			}
+
+			if (options.cache) {
+				// Cache the data in memory.
+				_.each(data, function(_data, key) {
+					countryData[key] = _data;
+				});
+			}
+
+			cb(null, data);
+		});
+	},
+
+	loadIpv4CountryData: function(cb) {
+
+		if (countryData.ipv4) {
+			return cb(null, countryData.ipv4);
+		}
+
+		var dataFile = ProxyVerifier._dataDir + '/country-ipv4';
+
+		fs.readFile(dataFile, 'utf8', function(error, data) {
+
+			if (error) {
+				return cb(error);
+			}
+
+			try {
+				data = JSON.parse(data);
+			} catch (error) {
+				return cb(error);
+			}
+
+			cb(null, data);
+		});
+	},
+
+	loadIpv6CountryData: function(cb) {
+
+		if (countryData.ipv6) {
+			return cb(null, countryData.ipv6);
+		}
+
+		cb(new Error('Not implemented yet.'));
 	}
 };
