@@ -8,9 +8,8 @@ var https = require('https');
 var lazy = require('lazy');
 var path = require('path');
 var program = require('commander');
-var unzip = require('unzip');
 var url = require('url');
-var zlib = require('zlib');
+var yauzl = require('yauzl');
 
 var utils = require('../lib/utils');
 
@@ -18,8 +17,7 @@ var packageInfo = JSON.parse(fs.readFileSync(__dirname + '/../package.json', 'ut
 
 program
 	.version(packageInfo.version)
-	.option('-o, --overwrite', 'overwrite existing data files')
-	.option('--debug', 'debugging mode (leave tmp files)')
+	.option('--debug', 'debugging mode')
 	.parse(process.argv);
 
 var dataDir = __dirname + '/../data';
@@ -33,120 +31,211 @@ if (!fs.existsSync(tmpDir)) {
 	fs.mkdirSync(tmpDir);
 }
 
-var dataFiles = [
-	{
-		name: 'country-ipv4',
-		url: 'https://geolite.maxmind.com/download/geoip/database/GeoIPCountryCSV.zip',
-		process: [
-			function(tmpFile, dataFile, cb) {
+function download(cb) {
 
-				// Unzip and grab the csv file.
-				fs.createReadStream(tmpFile)
-					.pipe(unzip.Parse())
-					.on('entry', function(entry) {
-						var fileName = path.basename(entry.path);
-						var type = entry.type;
-						if (type.toLowerCase() === 'file' && path.extname(fileName) === '.csv') {
-							tmpFile = path.join(tmpDir, fileName);
-							entry.pipe(fs.createWriteStream(tmpFile)).on('close', function() {
-								cb(null, tmpFile, dataFile);
-							});
-						} else {
-							entry.autodrain();
-						}
-					});
-			},
-			function(tmpFile, dataFile, cb) {
+	console.log('Downloading...');
 
-				var newTmpFile = tmpFile.substr(0, tmpFile.length - path.extname(tmpFile).length) + '.json';
-				var countryData = [];
+	var downloadUrl = 'https://geolite.maxmind.com/download/geoip/database/GeoLite2-Country-CSV.zip';
+	var fileName = path.basename(url.parse(downloadUrl).pathname);
+	var file = path.join(tmpDir, fileName);
 
-				lazy(fs.createReadStream(tmpFile))
-					.lines
-					.map(function(byteArray) {
-						return (new Buffer(byteArray)).toString('utf8');
-					})
-					.map(function(line) {
+	fs.stat(file, function(error, stat) {
 
-						var data = line.split(',');
-
-						if (!data || data.length < 4) {
-							console.log('Bad line ', line);
-							return;
-						}
-
-						// Two letter country code:
-						var countryCode = data[4].replace(/"/g, '').toLowerCase();
-
-						// Use the int version of the IP address:
-						var rangeStart = parseInt(data[2].replace(/"/g, ''));
-
-						countryData.push({
-							cc: countryCode,
-							rs: rangeStart
-						});
-					})
-					.on('pipe', function() {
-
-						fs.writeFile(newTmpFile, JSON.stringify(countryData), function(error) {
-
-							if (error) {
-								return cb(error);
-							}
-
-							cb(null, newTmpFile, dataFile);
-						})
-					});
-			}
-		]
-	}
-];
-
-function downloadDataFile(dataFile, cb) {
-
-	console.log('Downloading ' + dataFile.name + '...');
-
-	var tmpFileName = path.basename(url.parse(dataFile.url).pathname);
-	var tmpFile = path.join(tmpDir, tmpFileName);
-
-	fs.stat(tmpFile, function(error, stat) {
-
-		if (!error && !program.overwrite) {
-			// File exists.
-			console.log('Already downloaded.');
-			return cb(null, tmpFile, dataFile);
+		if (!error && program.debug) {
+			// File already exists.
+			return cb(null, file);
 		}
 
-		var req = https.get(dataFile.url, function(res) {
+		var req = https.get(downloadUrl, function(res) {
 
-			var tmpFilePipe;
-			var writableStream = fs.createWriteStream(tmpFile);
-
-			if (path.extname(tmpFile) === '.gz') {
-				tmpFilePipe = res.pipe(zlib.createGunzip()).pipe(writableStream);
-			} else {
-				tmpFilePipe = res.pipe(writableStream);
-			}
-
-			tmpFilePipe.on('close', function() {
-				cb(null, tmpFile, dataFile);
-			});
+			res.pipe(fs.createWriteStream(file))
+				.on('error', cb)
+				.on('close', function() {
+					cb(null, file);
+				});
 		});
 
 		req.on('error', cb);
 	});
 }
 
-function processDataFile(tmpFile, dataFile, cb) {
+function extract(zipArchive, cb) {
 
-	console.log('Processing ' + dataFile.name + '...');
+	console.log('Extracting...');
 
-	async.seq.apply(async, dataFile.process || [])(tmpFile, dataFile, cb);
+	// Unzip and grab the csv files that we need.
+
+	var fileNames = [
+		'GeoLite2-Country-Blocks-IPv4.csv',
+		'GeoLite2-Country-Locations-en.csv'
+	];
+
+	var extracted = {};
+	var called = false;
+
+	function done(error, fileName) {
+
+		if (called) {
+			// Do nothing, because we've already called cb().
+			return;
+		}
+
+		if (error) {
+			called = true;
+			return cb(error);
+		}
+
+		extracted[fileName] = true;
+
+		var allFilesExtracted = _.every(fileNames, function(fileName) {
+			return extracted[fileName];
+		});
+
+		if (allFilesExtracted) {
+			called = true;
+			return cb();
+		}
+	};
+
+	yauzl.open(zipArchive, function(error, openedZipArchive) {
+
+		if (error) {
+			return done(error);
+		}
+
+		openedZipArchive.on('entry', function(entry) {
+
+			var fileName = path.basename(entry.fileName);
+			var isDirectory = /\/$/.test(fileName);
+
+			if (!isDirectory && _.contains(fileNames, fileName)) {
+
+				openedZipArchive.openReadStream(entry, function(error, readStream) {
+
+					if (error) {
+						return done(error);
+					}
+
+					var file = path.join(tmpDir, fileName);
+
+					fs.stat(file, function(error, stat) {
+
+						if (!error && program.debug) {
+							// File already exists.
+							return done(null, fileName);
+						}
+
+						readStream.pipe(fs.createWriteStream(file))
+							.on('error', cb)
+							.on('close', function() {
+								done(null, fileName);
+							});
+					});
+				});
+			}
+		});
+	});
 }
 
-function moveToDataDir(tmpFile, dataFile, cb) {
+function processData(cb) {
 
-	fs.rename(tmpFile, path.join(dataDir, dataFile.name), cb);
+	console.log('Processing data...');
+
+	async.parallel({
+		countryBlocksIpv4: processCountryBlocksIpv4,
+		countryLocations: processCountryLocations
+	}, cb);
+}
+
+function processCountryBlocksIpv4(cb) {
+
+	var file = path.join(tmpDir, 'GeoLite2-Country-Blocks-IPv4.csv');
+	var countryBlocksIpv4 = [];
+
+	lazy(fs.createReadStream(file))
+		.lines
+		.map(function(byteArray) {
+			return (new Buffer(byteArray)).toString('utf8');
+		})
+		.skip(1)
+		.map(function(line) {
+
+			var data = line.split(',');
+
+			if (!data || data.length < 2) {
+				console.log('Bad line '.red, line);
+				return;
+			}
+
+			var geonameId = parseInt(data[1].replace(/"/g, ''));
+			var ipv4Cidr = data[0].replace(/"/g, '');
+			var ipv4Range = utils.ipv4CidrToRange(ipv4Cidr);
+			var ipv4RangeStartInt = utils.ipv4ToInt(ipv4Range.start);
+
+			countryBlocksIpv4.push({
+				geoname_id: geonameId,
+				ipv4_start_int: ipv4RangeStartInt
+			});
+		})
+		.on('pipe', function() {
+
+			cb(null, countryBlocksIpv4);
+		});
+}
+
+function processCountryLocations(cb) {
+
+	var file = path.join(tmpDir, 'GeoLite2-Country-Locations-en.csv');
+	var countryLocations = {};
+
+	lazy(fs.createReadStream(file))
+		.lines
+		.map(function(byteArray) {
+			return (new Buffer(byteArray)).toString('utf8');
+		})
+		.skip(1)
+		.map(function(line) {
+
+			var data = line.split(',');
+
+			if (!data || data.length < 2) {
+				console.log('Bad line '.red, line);
+				return;
+			}
+
+			var geonameId = parseInt(data[0].replace(/"/g, ''));
+			var isoCode = data[4].replace(/"/g, '').toLowerCase();
+
+			countryLocations[geonameId] = isoCode;
+		})
+		.on('pipe', function() {
+
+			cb(null, countryLocations);
+		});
+}
+
+function buildDataFiles(data, cb) {
+
+	console.log('Building data files...');
+
+	async.parallel([
+		_.bind(buildIpv4DataFile, undefined, data)
+	], cb)
+}
+
+function buildIpv4DataFile(data, cb) {
+
+	var json = _.map(data.countryBlocksIpv4, function(item) {
+
+		return {
+			cc: data.countryLocations[item.geoname_id],
+			rs: item.ipv4_start_int
+		}
+	});
+
+	var file = path.join(dataDir, 'country-ipv4.json');
+
+	fs.writeFile(file, JSON.stringify(json), 'utf8', cb);
 }
 
 function cleanup() {
@@ -165,13 +254,7 @@ function cleanup() {
 	}
 }
 
-console.log('Fetching data files...');
-
-async.each(dataFiles, function(dataFile, cb) {
-
-	async.seq(downloadDataFile, processDataFile, moveToDataDir)(dataFile, cb);
-
-}, function(error) {
+async.seq(download, extract, processData, buildDataFiles)(function(error) {
 
 	cleanup();
 
