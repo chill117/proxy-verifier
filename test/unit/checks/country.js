@@ -7,7 +7,7 @@ var expect = require('chai').expect;
 
 var ProxyVerifier = require('../../../');
 
-describe('check.country(proxy, cb)', function() {
+describe('check.country(proxy)', function() {
 
 	var proxies = [
 		{
@@ -42,49 +42,40 @@ describe('check.country(proxy, cb)', function() {
 		expect(ProxyVerifier.check.country).to.be.a('function');
 	});
 
-	it('should give the correct country for proxies with IPv4 addresses', function(done) {
+	it('should give the correct country for proxies with IPv4 addresses', function() {
 
-		async.each(proxies, function(proxy, next) {
+		_.each(proxies, function(proxy) {
 
-			ProxyVerifier.check.country(proxy, function(error, country) {
+			var thrownError;
 
-				try {
-					expect(error).to.equal(null);
-					expect(country).to.equal(proxy.country);
-				} catch (error) {
-					return next(error);
-				}
+			try {
+				var country = ProxyVerifier.check.country(proxy);
+			} catch (error) {
+				thrownError = error;
+			}
 
-				next();
-			});
-
-		}, done);
+			expect(thrownError).to.equal(undefined);
+			expect(country).to.equal(proxy.country);
+		});
 	});
 
 	describe('performance', function() {
 
 		it('should check the country of many proxies quickly', function(done) {
 
-			this.timeout(30000);
+			this.timeout(15000);
 
 			var i = 0;
 
-			var bench = new Benchmark(function(deferred) {
-
-				ProxyVerifier.check.country(proxies[i] || proxies[i = 0], function() {
-					deferred.resolve();
-				});
-				i++;
-
-			}, {
-				async: true,
-				defer: true
+			var bench = new Benchmark(function() {
+				var proxy = proxies[i++] || proxies[i = 0];
+				ProxyVerifier.check.country(proxy);
 			});
 
 			bench.on('complete', function(result) {
 
 				try {
-					expect(result.target.hz > 500).to.equal(true);
+					expect(result.target.hz > 500000).to.equal(true);
 				} catch (error) {
 					return done(error);
 				}

@@ -117,18 +117,13 @@ var ProxyVerifier = module.exports = {
 			});
 		},
 
-		country: function(proxy, cb) {
+		country: function(proxy) {
 
-			var type = net.isIP(proxy.ip_address);
-
-			if (type === 0) {
-				return cb(new Error('Invalid IP address.'));
-			}
-
-			var list = countryData[type === 4 ? 'ipv4' : 'ipv6'];
+			var ipType = proxy.ip_address.indexOf(':') !== -1 ? 'ipv6': 'ipv4';
+			var list = countryData[ipType];
 
 			if (_.isUndefined(list)) {
-				return cb(new Error('Country data has not been loaded.'));
+				throw new Error('Country data has not been loaded.');
 			}
 
 			var ipInt = utils.ipv4ToInt(proxy.ip_address);
@@ -136,14 +131,14 @@ var ProxyVerifier = module.exports = {
 
 			if (index === -1) {
 				// Not found.
-				return cb(null, null);
+				return null;
 			}
 
 			if (_.isUndefined(list[--index])) {
 				index++;
 			}
 
-			cb(null, list[index].cc);
+			return list[index].cc;
 		}
 	},
 
