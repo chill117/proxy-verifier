@@ -5,7 +5,6 @@ var expect = require('chai').expect;
 
 var ProxyVerifier = require('../../');
 var helpers = require('../helpers');
-var ssl = require('../ssl');
 
 describe('request(method, url[, options], cb)', function() {
 
