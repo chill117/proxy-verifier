@@ -39,6 +39,8 @@ function download(cb) {
 	var fileName = path.basename(url.parse(downloadUrl).pathname);
 	var file = path.join(tmpDir, fileName);
 
+	return cb(null, file);
+
 	fs.stat(file, function(error, stat) {
 
 		if (!error && program.debug) {
@@ -63,11 +65,13 @@ function extract(zipArchive, cb) {
 
 	console.log('Extracting...');
 
-	// Unzip and grab the csv files that we need.
+	// Unzip and grab the files that we need.
 
 	var fileNames = [
 		'GeoLite2-Country-Blocks-IPv4.csv',
-		'GeoLite2-Country-Locations-en.csv'
+		'GeoLite2-Country-Locations-en.csv',
+		'COPYRIGHT.txt',
+		'LICENSE.txt'
 	];
 
 	var extracted = {};
@@ -220,7 +224,14 @@ function buildDataFiles(data, cb) {
 
 	async.parallel([
 		_.bind(buildIpv4DataFile, undefined, data)
-	], cb)
+	], function(error) {
+
+		if (error) {
+			return cb(error);
+		}
+
+		cb();
+	});
 }
 
 function buildIpv4DataFile(data, cb) {
@@ -236,6 +247,32 @@ function buildIpv4DataFile(data, cb) {
 	var file = path.join(dataDir, 'country-ipv4.json');
 
 	fs.writeFile(file, JSON.stringify(json), 'utf8', cb);
+}
+
+function moveTmpFilesToDataDir(cb) {
+
+	console.log('Moving files to data directory...');
+
+	var tmpFileNames = [
+		'COPYRIGHT.txt',
+		'LICENSE.txt'
+	];
+
+	async.each(tmpFileNames, function(tmpFileName, next) {
+
+		var tmpFile = path.join(tmpDir, tmpFileName);
+		var file = path.join(dataDir, tmpFileName);
+
+		fs.rename(tmpFile, file, next);
+
+	}, function(error) {
+
+		if (error) {
+			return cb(error);
+		}
+
+		cb();
+	});
 }
 
 function cleanup() {
@@ -254,7 +291,7 @@ function cleanup() {
 	}
 }
 
-async.seq(download, extract, processData, buildDataFiles)(function(error) {
+async.seq(download, extract, processData, buildDataFiles, moveTmpFilesToDataDir)(function(error) {
 
 	cleanup();
 
