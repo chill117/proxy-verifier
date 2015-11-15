@@ -20,21 +20,21 @@ var ProxyVerifier = module.exports = {
 
 	check: {
 
-		protocols: function(proxy, protocols, cb) {
+		protocols: function(proxy, options, cb) {
 
 			if (_.isUndefined(cb)) {
-				cb = protocols;
-				protocols = null
+				cb = cb;
+				options = null
 			}
 
-			protocols || (protocols = proxy.protocols);
+			options || (options = {});
 
-			if (!_.isArray(protocols)) {
+			if (!_.isArray(options.protocols)) {
 				throw new Error('Invalid "protocols" argument: Array expected.');
 			}
 
-			if (!protocols || _.isEmpty(protocols)) {
-				throw new Error('Must specify which protocols to test.');
+			if (!options.protocols || _.isEmpty(options.protocols)) {
+				throw new Error('Must specify some protocols to test.');
 			}
 
 			var tests = _.object(_.map(proxy.protocols, function(protocol) {
@@ -44,20 +44,22 @@ var ProxyVerifier = module.exports = {
 			async.parallel(tests, cb);
 		},
 
-		protocol: function(proxy, protocol, cb) {
+		protocol: function(proxy, options, cb) {
 
 			if (_.isUndefined(cb)) {
 				cb = cb;
-				protocol = null
+				options = null
 			}
 
-			protocol || (protocol = proxy.protocol);
+			options || (options = {});
 
-			if (!protocol) {
-				throw new Error('Must specify a protocol to test.');
-			}
+			var checkUrl = ProxyVerifier._checkUrl;
 
-			ProxyVerifier.request('get', checkUrl, { proxy: proxy }, function(error) {
+			var requestOptions = _.extend({}, options, {
+				proxy:  _.clone(proxy)
+			});
+
+			ProxyVerifier.request('get', checkUrl, requestOptions, function(error) {
 
 				if (error) {
 					return cb(null, { ok: false, error: error });
@@ -68,6 +70,8 @@ var ProxyVerifier = module.exports = {
 		},
 
 		anonymityLevel: function(proxy, cb) {
+
+			var checkUrl = ProxyVerifier._checkUrl;
 
 			async.parallel({
 
@@ -156,7 +160,7 @@ var ProxyVerifier = module.exports = {
 		if (options.proxy) {
 
 			var proxy = options.proxy;
-			var proxyProtocol = options.protocol || proxy.protocol || _.first(proxy.protocols);
+			var proxyProtocol = proxy.protocol || _.first(proxy.protocols);
 			var proxyOptions = _.extend(
 				{},
 				url.parse(proxyProtocol + '://' + proxy.ip_address + ':' + proxy.port),
