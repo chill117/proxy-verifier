@@ -96,7 +96,8 @@ describe('request(method, url[, options], cb)', function() {
 								proxy: proxy,
 								proxyOptions: {
 									rejectUnauthorized: false
-								}
+								},
+								timeout: 100
 							};
 
 							ProxyVerifier.request('get', url, requestOptions, function(error, data, status, headers) {

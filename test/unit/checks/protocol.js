@@ -64,7 +64,8 @@ describe('check.protocol(proxy[, options], cb)', function() {
 					strictSSL: false,
 					proxyOptions: {
 						rejectUnauthorized: false
-					}
+					},
+					timeout: 100
 				};
 
 				ProxyVerifier.check.protocol(proxy, requestOptions, function(error, result) {
@@ -108,7 +109,8 @@ describe('check.protocol(proxy[, options], cb)', function() {
 					strictSSL: false,
 					proxyOptions: {
 						rejectUnauthorized: false
-					}
+					},
+					timeout: 100
 				};
 
 				ProxyVerifier.check.protocol(proxy, requestOptions, function(error, result) {
