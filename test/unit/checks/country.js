@@ -1,7 +1,6 @@
 'use strict';
 
 var _ = require('underscore');
-var async = require('async');
 var Benchmark = require('benchmark');
 var expect = require('chai').expect;
 
