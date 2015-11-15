@@ -75,10 +75,10 @@ describe('check.country(proxy)', function() {
 
 			bench.on('complete', function(result) {
 
-				try {
-					expect(result.target.hz > 500000).to.equal(true);
-				} catch (error) {
-					return done(error);
+				var minHz = 100000;
+
+				if (!(result.target.hz >= minHz)) {
+					return done(new Error('Expected at least ' + minHz + ' ops / second'))
 				}
 
 				done();
