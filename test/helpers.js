@@ -67,9 +67,15 @@ module.exports = {
 
 		function connectTunnel(req, cltSocket, head) {
 
+			// Bind local address of proxy server.
+			var srvSocket = new net.Socket({
+				handle: net._createServerHandle(host)
+			});
+
 			// Connect to an origin server.
 			var srvUrl = url.parse('http://' + req.url);
-			var srvSocket = net.connect(srvUrl.port, srvUrl.hostname, function() {
+
+			srvSocket.connect(srvUrl.port, srvUrl.hostname, function() {
 				cltSocket.write(
 					'HTTP/1.1 200 Connection Established\r\n' +
 					'Proxy-agent: Node.js-Proxy\r\n' +
