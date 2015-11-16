@@ -1,7 +1,6 @@
 'use strict';
 
 var _ = require('underscore');
-var Benchmark = require('benchmark');
 var expect = require('chai').expect;
 
 var ProxyVerifier = require('../../../');
@@ -57,34 +56,6 @@ describe('check.country(proxy)', function() {
 
 			expect(thrownError).to.equal(undefined);
 			expect(country).to.equal(proxy.country);
-		});
-	});
-
-	describe('performance', function() {
-
-		it('should check the country of many proxies quickly', function(done) {
-
-			this.timeout(15000);
-
-			var i = 0;
-
-			var bench = new Benchmark(function() {
-				var proxy = proxies.ipv4[i++] || proxies.ipv4[i = 0];
-				ProxyVerifier.check.country(proxy);
-			});
-
-			bench.on('complete', function(result) {
-
-				var minHz = 100000;
-
-				if (!(result.target.hz >= minHz)) {
-					return done(new Error('Expected at least ' + minHz + ' ops / second'))
-				}
-
-				done();
-			});
-
-			bench.run();
 		});
 	});
 });

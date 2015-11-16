@@ -1,8 +1,12 @@
 {
 	"default": ["test"],
 	"test": [
+		"test:benchmarks",
 		"test:code-style",
 		"test:unit"
+	],
+	"test:benchmarks": [
+		"mochaTest:benchmarks"
 	],
 	"test:code-style": [
 		"jscs"
