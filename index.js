@@ -29,16 +29,17 @@ var ProxyVerifier = module.exports = {
 
 			options || (options = {});
 
-			if (!_.isArray(options.protocols)) {
-				throw new Error('Invalid "protocols" argument: Array expected.');
+			if (!_.isArray(proxy.protocols)) {
+				throw new Error('Invalid "protocols" attribute: Array expected.');
 			}
 
-			if (!options.protocols || _.isEmpty(options.protocols)) {
+			if (!proxy.protocols || _.isEmpty(proxy.protocols)) {
 				throw new Error('Must specify some protocols to test.');
 			}
 
 			var tests = _.object(_.map(proxy.protocols, function(protocol) {
-				return [protocol, _.bind(ProxyVerifier.checks.protocol, undefined, proxy, protocol)];
+				var _proxy = _.extend({}, proxy, { protocol: protocol });
+				return [protocol, _.bind(ProxyVerifier.check.protocol, undefined, _proxy, options)];
 			}));
 
 			async.parallel(tests, cb);
