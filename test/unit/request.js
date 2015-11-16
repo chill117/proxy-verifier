@@ -12,7 +12,7 @@ describe('request(method, url[, options], cb)', function() {
 
 	before(function() {
 
-		appServer = helpers.createAppServer(3001, 'localhost');
+		appServer = helpers.createAppServer(3001, '127.0.0.1');
 	});
 
 	after(function() {
@@ -31,8 +31,12 @@ describe('request(method, url[, options], cb)', function() {
 		var host = appServer.http.address().address;
 		var port = appServer.http.address().port;
 		var url = 'http://' + host + ':' + port + '/check';
+		var localAddress = '127.0.1.1';
+		var requestOptions = {
+			localAddress: localAddress
+		};
 
-		ProxyVerifier.request('get', url, function(error, data, status, headers) {
+		ProxyVerifier.request('get', url, requestOptions, function(error, data, status, headers) {
 
 			try {
 
@@ -41,7 +45,7 @@ describe('request(method, url[, options], cb)', function() {
 				expect(data).to.be.an('object');
 				expect(_.has(data, 'ip_address')).to.equal(true);
 				expect(_.has(data, 'headers')).to.equal(true);
-				expect(data.ip_address).to.equal('127.0.0.1');
+				expect(data.ip_address).to.equal(localAddress);
 				expect(data.headers).to.be.an('object');
 				expect(data.headers.host).to.equal(host + ':' + port);
 
@@ -63,7 +67,7 @@ describe('request(method, url[, options], cb)', function() {
 
 			before(function() {
 
-				proxyServer = helpers.createProxyServer(5050, 'localhost');
+				proxyServer = helpers.createProxyServer(5050, '127.0.0.2');
 			});
 
 			after(function() {

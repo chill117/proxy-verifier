@@ -16,7 +16,16 @@ var ProxyVerifier = module.exports = {
 
 	_dataDir: __dirname + '/data',
 	_checkUrl: 'http://bitproxies.eu/api/v1/check',
-	_proxyRelatedHeaderKeywords: ['via', 'proxy'],
+
+	/*
+		Array of header keys for exact matching.
+	*/
+	_proxyHeaders: ['via'],
+
+	/*
+		Array of header keywords for loose matching.
+	*/
+	_proxyRelatedHeaderKeywords: ['proxy'],
 
 	check: {
 
@@ -70,7 +79,14 @@ var ProxyVerifier = module.exports = {
 			});
 		},
 
-		anonymityLevel: function(proxy, cb) {
+		anonymityLevel: function(proxy, options, cb) {
+
+			if (_.isUndefined(cb)) {
+				cb = cb;
+				options = null
+			}
+
+			options || (options = {});
 
 			var checkUrl = ProxyVerifier._checkUrl;
 
@@ -78,12 +94,16 @@ var ProxyVerifier = module.exports = {
 
 				withProxy: function(next) {
 
-					ProxyVerifier.request('get', checkUrl, { proxy: proxy }, next);
+					var requestOptions = _.extend({}, options, { proxy: proxy });
+
+					ProxyVerifier.request('get', checkUrl, requestOptions, next);
 				},
 
 				withoutProxy: function(next) {
 
-					ProxyVerifier.request('get', checkUrl, next);
+					var requestOptions = options;
+
+					ProxyVerifier.request('get', checkUrl, requestOptions, next);
 				}
 
 			}, function(error, results) {
@@ -95,23 +115,26 @@ var ProxyVerifier = module.exports = {
 				var anonymityLevel;
 				var withProxy = results.withProxy[0];
 				var withoutProxy = results.withoutProxy[0];
-				var myIpAddress = withoutProxy.ip;
+				var myIpAddress = withoutProxy.ip_address;
 
 				// If the requesting host's IP address is in any of the headers, then "transparent".
-				if (withProxy.ip === myIpAddress || _.contains(_.values(withProxy.headers), myIpAddress)) {
+				if (withProxy.ip_address === myIpAddress || _.contains(_.values(withProxy.headers), myIpAddress)) {
 					anonymityLevel = 'transparent';
 				} else {
 
+					var proxyHeaders = ProxyVerifier._proxyHeaders;
 					var proxyKeywords = ProxyVerifier._proxyRelatedHeaderKeywords;
 					var headerKeys = _.keys(withProxy.headers);
-					var headerValues = _.values(withProxy.headers);
 
-					var containsProxyKeywords = _.some(proxyKeywords, function(keyword) {
-						return _.contains(headerKeys, keyword) ||
-								_.contains(headerValues, keyword);
+					var hasProxyHeaders = _.some(proxyHeaders, function(proxyHeader) {
+						return _.contains(headerKeys, proxyHeader) || _.some(headerKeys, function(headerKey) {
+							return _.some(proxyKeywords, function(proxyKeyword) {
+								return headerKey.indexOf(proxyKeyword) !== -1;
+							});
+						});
 					});
 
-					if (containsProxyKeywords) {
+					if (hasProxyHeaders) {
 						anonymityLevel = 'anonymous';
 					} else {
 						anonymityLevel = 'elite';

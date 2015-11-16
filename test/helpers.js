@@ -37,6 +37,8 @@ module.exports = {
 
 		options || (options = {});
 
+		options.localAddress = host;
+
 		var proxy = httpProxy.createProxyServer(options);
 
 		proxy.http = http.createServer(function(req, res) {

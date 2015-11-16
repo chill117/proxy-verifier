@@ -12,9 +12,9 @@ describe('check.protocol(proxy[, options], cb)', function() {
 
 	before(function() {
 
-		appServer = helpers.createAppServer(3001, 'localhost');
+		appServer = helpers.createAppServer(3001, '127.0.0.1');
 
-		ProxyVerifier._checkUrl = 'http://localhost:3001/check';
+		ProxyVerifier._checkUrl = 'http://127.0.0.1:3001/check';
 	});
 
 	after(function() {
@@ -32,7 +32,7 @@ describe('check.protocol(proxy[, options], cb)', function() {
 
 	before(function() {
 
-		proxyServer = helpers.createProxyServer(5050, 'localhost');
+		proxyServer = helpers.createProxyServer(5050, '127.0.0.2');
 	});
 
 	after(function() {
