@@ -1,6 +1,6 @@
 {
   "name": "proxy-verifier",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "Check that proxies are working, verify their anonymity level and country.",
   "main": "index.js",
   "scripts": {
