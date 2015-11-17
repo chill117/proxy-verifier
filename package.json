@@ -4,7 +4,8 @@
   "description": "Check that proxies are working, verify their anonymity level and country.",
   "main": "index.js",
   "scripts": {
-    "test": "grunt test"
+    "test": "grunt test",
+    "updatedata": "node scripts/update-data.js"
   },
   "repository": {
     "type": "git",
@@ -23,6 +24,7 @@
     "async": "1.5.0",
     "colors": "1.1.2",
     "commander": "2.9.0",
+    "ip-address": "5.0.2",
     "lazy": "1.0.11",
     "proxy-agent": "2.0.0",
     "request": "2.65.0",
