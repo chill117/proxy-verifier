@@ -16,7 +16,7 @@ describe('benchmark: check.country', function() {
 
 	var minHz = {
 		ipv4: 500000,
-		ipv6: 50000
+		ipv6: 250000
 	};
 
 	_.each(_.keys(proxies), function(ipType) {
