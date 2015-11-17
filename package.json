@@ -4,8 +4,7 @@
   "description": "Check that proxies are working, verify their anonymity level and country.",
   "main": "index.js",
   "scripts": {
-    "test": "grunt test",
-    "updatedata": "node scripts/update-data.js"
+    "test": "grunt test"
   },
   "repository": {
     "type": "git",
@@ -22,17 +21,12 @@
   },
   "dependencies": {
     "async": "1.5.0",
-    "colors": "1.1.2",
-    "commander": "2.9.0",
-    "ip-address": "5.0.2",
-    "lazy": "1.0.11",
+    "geoip-native-lite": "0.0.0",
     "proxy-agent": "2.0.0",
     "request": "2.65.0",
-    "underscore": "1.8.3",
-    "yauzl": "2.3.1"
+    "underscore": "1.8.3"
   },
   "devDependencies": {
-    "benchmark": "1.0.0",
     "chai": "3.4.0",
     "express": "4.13.3",
     "grunt": "0.4.5",
