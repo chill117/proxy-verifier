@@ -23,143 +23,140 @@ var ProxyVerifier = module.exports = {
 	*/
 	_proxyRelatedHeaderKeywords: ['proxy'],
 
-	check: {
+	protocols: function(proxy, options, cb) {
 
-		protocols: function(proxy, options, cb) {
+		if (_.isUndefined(cb)) {
+			cb = cb;
+			options = null
+		}
 
-			if (_.isUndefined(cb)) {
-				cb = cb;
-				options = null
+		options || (options = {});
+
+		if (!_.isArray(proxy.protocols)) {
+			throw new Error('Invalid "protocols" attribute: Array expected.');
+		}
+
+		if (!proxy.protocols || _.isEmpty(proxy.protocols)) {
+			throw new Error('Must specify some protocols to test.');
+		}
+
+		var tests = _.object(_.map(proxy.protocols, function(protocol) {
+			var _proxy = _.extend({}, proxy, { protocol: protocol });
+			return [protocol, _.bind(ProxyVerifier.protocol, undefined, _proxy, options)];
+		}));
+
+		async.parallel(tests, cb);
+	},
+
+	protocol: function(proxy, options, cb) {
+
+		if (_.isUndefined(cb)) {
+			cb = cb;
+			options = null
+		}
+
+		options || (options = {});
+
+		var checkUrl = ProxyVerifier._checkUrl;
+
+		var requestOptions = _.extend({}, options, {
+			proxy:	_.clone(proxy)
+		});
+
+		ProxyVerifier.request('get', checkUrl, requestOptions, function(error) {
+
+			var result;
+
+			if (error) {
+
+				result = {
+					ok: false,
+					error: {
+						message: error.message,
+						code: error.code
+					}
+				};
+
+			} else {
+
+				result = {
+					ok: true
+				};
 			}
 
-			options || (options = {});
+			cb(null, result);
+		});
+	},
 
-			if (!_.isArray(proxy.protocols)) {
-				throw new Error('Invalid "protocols" attribute: Array expected.');
+	anonymityLevel: function(proxy, options, cb) {
+
+		if (_.isUndefined(cb)) {
+			cb = cb;
+			options = null
+		}
+
+		options || (options = {});
+
+		var checkUrl = ProxyVerifier._checkUrl;
+
+		async.parallel({
+
+			withProxy: function(next) {
+
+				var requestOptions = _.extend({}, options, { proxy: proxy });
+
+				ProxyVerifier.request('get', checkUrl, requestOptions, next);
+			},
+
+			withoutProxy: function(next) {
+
+				var requestOptions = options;
+
+				ProxyVerifier.request('get', checkUrl, requestOptions, next);
 			}
 
-			if (!proxy.protocols || _.isEmpty(proxy.protocols)) {
-				throw new Error('Must specify some protocols to test.');
+		}, function(error, results) {
+
+			if (error) {
+				return cb(error);
 			}
 
-			var tests = _.object(_.map(proxy.protocols, function(protocol) {
-				var _proxy = _.extend({}, proxy, { protocol: protocol });
-				return [protocol, _.bind(ProxyVerifier.check.protocol, undefined, _proxy, options)];
-			}));
+			var anonymityLevel;
+			var withProxy = results.withProxy[0];
+			var withoutProxy = results.withoutProxy[0];
+			var myIpAddress = withoutProxy.ip_address;
 
-			async.parallel(tests, cb);
-		},
+			// If the requesting host's IP address is in any of the headers, then "transparent".
+			if (withProxy.ip_address === myIpAddress || _.contains(_.values(withProxy.headers), myIpAddress)) {
+				anonymityLevel = 'transparent';
+			} else {
 
-		protocol: function(proxy, options, cb) {
+				var proxyHeaders = ProxyVerifier._proxyHeaders;
+				var proxyKeywords = ProxyVerifier._proxyRelatedHeaderKeywords;
+				var headerKeys = _.keys(withProxy.headers);
 
-			if (_.isUndefined(cb)) {
-				cb = cb;
-				options = null
-			}
-
-			options || (options = {});
-
-			var checkUrl = ProxyVerifier._checkUrl;
-
-			var requestOptions = _.extend({}, options, {
-				proxy:	_.clone(proxy)
-			});
-
-			ProxyVerifier.request('get', checkUrl, requestOptions, function(error) {
-
-				var result;
-
-				if (error) {
-
-					result = {
-						ok: false,
-						error: {
-							message: error.message,
-							code: error.code
-						}
-					};
-
-				} else {
-
-					result = {
-						ok: true
-					};
-				}
-
-				cb(null, result);
-			});
-		},
-
-		anonymityLevel: function(proxy, options, cb) {
-
-			if (_.isUndefined(cb)) {
-				cb = cb;
-				options = null
-			}
-
-			options || (options = {});
-
-			var checkUrl = ProxyVerifier._checkUrl;
-
-			async.parallel({
-
-				withProxy: function(next) {
-
-					var requestOptions = _.extend({}, options, { proxy: proxy });
-
-					ProxyVerifier.request('get', checkUrl, requestOptions, next);
-				},
-
-				withoutProxy: function(next) {
-
-					var requestOptions = options;
-
-					ProxyVerifier.request('get', checkUrl, requestOptions, next);
-				}
-
-			}, function(error, results) {
-
-				if (error) {
-					return cb(error);
-				}
-
-				var anonymityLevel;
-				var withProxy = results.withProxy[0];
-				var withoutProxy = results.withoutProxy[0];
-				var myIpAddress = withoutProxy.ip_address;
-
-				// If the requesting host's IP address is in any of the headers, then "transparent".
-				if (withProxy.ip_address === myIpAddress || _.contains(_.values(withProxy.headers), myIpAddress)) {
-					anonymityLevel = 'transparent';
-				} else {
-
-					var proxyHeaders = ProxyVerifier._proxyHeaders;
-					var proxyKeywords = ProxyVerifier._proxyRelatedHeaderKeywords;
-					var headerKeys = _.keys(withProxy.headers);
-
-					var hasProxyHeaders = _.some(proxyHeaders, function(proxyHeader) {
-						return _.contains(headerKeys, proxyHeader) || _.some(headerKeys, function(headerKey) {
-							return _.some(proxyKeywords, function(proxyKeyword) {
-								return headerKey.indexOf(proxyKeyword) !== -1;
-							});
+				var hasProxyHeaders = _.some(proxyHeaders, function(proxyHeader) {
+					return _.contains(headerKeys, proxyHeader) || _.some(headerKeys, function(headerKey) {
+						return _.some(proxyKeywords, function(proxyKeyword) {
+							return headerKey.indexOf(proxyKeyword) !== -1;
 						});
 					});
+				});
 
-					if (hasProxyHeaders) {
-						anonymityLevel = 'anonymous';
-					} else {
-						anonymityLevel = 'elite';
-					}
+				if (hasProxyHeaders) {
+					anonymityLevel = 'anonymous';
+				} else {
+					anonymityLevel = 'elite';
 				}
+			}
 
-				cb(null, anonymityLevel);
-			});
-		},
+			cb(null, anonymityLevel);
+		});
+	},
 
-		country: function(proxy) {
+	country: function(proxy) {
 
-			return GeoIpNativeLite.lookup(proxy.ip_address);
-		}
+		return GeoIpNativeLite.lookup(proxy.ip_address);
 	},
 
 	request: function(method, uri, options, cb) {

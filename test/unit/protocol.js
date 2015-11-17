@@ -3,10 +3,10 @@
 var _ = require('underscore');
 var expect = require('chai').expect;
 
-var ProxyVerifier = require('../../../');
-var helpers = require('../../helpers');
+var ProxyVerifier = require('../../');
+var helpers = require('../helpers');
 
-describe('check.protocol(proxy[, options], cb)', function() {
+describe('protocol(proxy[, options], cb)', function() {
 
 	var appServer;
 
@@ -25,7 +25,7 @@ describe('check.protocol(proxy[, options], cb)', function() {
 
 	it('should be a function', function() {
 
-		expect(ProxyVerifier.check.protocol).to.be.a('function');
+		expect(ProxyVerifier.protocol).to.be.a('function');
 	});
 
 	var proxyServer;
@@ -68,7 +68,7 @@ describe('check.protocol(proxy[, options], cb)', function() {
 					timeout: 100
 				};
 
-				ProxyVerifier.check.protocol(proxy, requestOptions, function(error, result) {
+				ProxyVerifier.protocol(proxy, requestOptions, function(error, result) {
 
 					try {
 						expect(error).to.equal(null);
@@ -113,7 +113,7 @@ describe('check.protocol(proxy[, options], cb)', function() {
 					timeout: 100
 				};
 
-				ProxyVerifier.check.protocol(proxy, requestOptions, function(error, result) {
+				ProxyVerifier.protocol(proxy, requestOptions, function(error, result) {
 
 					try {
 						expect(error).to.equal(null);

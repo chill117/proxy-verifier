@@ -4,10 +4,10 @@ var _ = require('underscore');
 var async = require('async');
 var expect = require('chai').expect;
 
-var ProxyVerifier = require('../../../');
-var helpers = require('../../helpers');
+var ProxyVerifier = require('../../');
+var helpers = require('../helpers');
 
-describe('check.anonymityLevel(proxy[, options], cb)', function() {
+describe('anonymityLevel(proxy[, options], cb)', function() {
 
 	var appServer;
 
@@ -67,7 +67,7 @@ describe('check.anonymityLevel(proxy[, options], cb)', function() {
 
 	it('should be a function', function() {
 
-		expect(ProxyVerifier.check.anonymityLevel).to.be.a('function');
+		expect(ProxyVerifier.anonymityLevel).to.be.a('function');
 	});
 
 	_.each(_.keys(proxyServers), function(anonymityLevel) {
@@ -95,7 +95,7 @@ describe('check.anonymityLevel(proxy[, options], cb)', function() {
 					}
 				};
 
-				ProxyVerifier.check.anonymityLevel(proxy, requestOptions, function(error, result) {
+				ProxyVerifier.anonymityLevel(proxy, requestOptions, function(error, result) {
 
 					try {
 						expect(error).to.equal(null);

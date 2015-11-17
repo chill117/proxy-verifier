@@ -3,11 +3,11 @@
 var _ = require('underscore');
 var expect = require('chai').expect;
 
-var ProxyVerifier = require('../../../');
+var ProxyVerifier = require('../../');
 
-describe('check.country(proxy)', function() {
+describe('country(proxy)', function() {
 
-	var proxies = require('../../fixtures/proxies');
+	var proxies = require('../fixtures/proxies');
 
 	before(function(done) {
 
@@ -16,7 +16,7 @@ describe('check.country(proxy)', function() {
 
 	it('should be a function', function() {
 
-		expect(ProxyVerifier.check.country).to.be.a('function');
+		expect(ProxyVerifier.country).to.be.a('function');
 	});
 
 	_.each(_.keys(proxies), function(ipType) {
@@ -27,7 +27,7 @@ describe('check.country(proxy)', function() {
 
 				_.each(proxies[ipType], function(proxy) {
 
-					var country = ProxyVerifier.check.country(proxy);
+					var country = ProxyVerifier.country(proxy);
 
 					try {
 						expect(country).to.equal(proxy.country);
