@@ -14,6 +14,188 @@ npm install proxy-verifier --save
 This will install `proxy-verifier` and add it to your application's `package.json` file.
 
 
+## How to Use
+
+* [protocol](#protocol)
+* [protocols](#protocols)
+* [anonymityLevel](#anonymitylevel)
+* [country](#country)
+
+### protocol
+
+`protocol(proxy[, options], cb)`
+
+Check that the proxy works with the specified protocol. The `options` argument is passed through to the `request()` method which uses [request](https://github.com/request/request).
+
+Usage:
+```js
+var ProxyVerifier = require('proxy-verifier');
+
+var proxy = {
+	ip_address: '127.0.0.1',
+	port: 8080,
+	protocol: 'http'
+};
+
+ProxyVerifier.protocol(proxy, function(error, result) {
+
+	if (error) {
+		// Some unusual error occurred.
+	} else {
+		// The result object will contain success/error information.
+	}
+});
+```
+
+Sample `result` when the proxy is working:
+```js
+{
+	ok: true
+}
+```
+
+Sample `result` when the proxy is not working:
+```js
+{
+	ok: false,
+	error: {
+		message: 'socket hang up',
+		code: 'ECONNRESET'
+	}
+}
+```
+
+### protocols
+
+`protocols(proxy[, options], cb)`
+
+Check that the proxy works with the specified protocols. The `options` argument is passed through to the `request()` method which uses [request](https://github.com/request/request).
+
+Usage:
+```js
+var ProxyVerifier = require('proxy-verifier');
+
+var proxy = {
+	ip_address: '127.0.0.1',
+	port: 8080,
+	protocols: ['http', 'https']
+};
+
+ProxyVerifier.protocols(proxy, function(error, results) {
+
+	if (error) {
+		// Some unusual error occurred.
+	} else {
+		// The results object contains a result object for each protocol.
+	}
+});
+```
+
+Sample `results` when the proxy is working for all its protocols:
+```js
+{
+	http: {
+		ok: true
+	},
+	https: {
+		ok: true
+	}
+}
+```
+
+Sample `results` when the proxy is not working for any of the protocols:
+```js
+{
+	http: {
+		ok: false,
+		error: {
+			message: 'socket hang up',
+			code: 'ECONNRESET'
+		}
+	},
+	https: {
+		ok: false,
+		error: {
+			message: 'socket hang up',
+			code: 'ECONNRESET'
+		}
+	}
+}
+```
+
+### anonymityLevel
+
+`anonymityLevel(proxy[, options], cb)`
+
+Check the anonymity level of the proxy. The `options` argument is passed through to the `request()` method which uses [request](https://github.com/request/request).
+
+Usage:
+```js
+var ProxyVerifier = require('proxy-verifier');
+
+var proxy = {
+	ip_address: '127.0.0.1',
+	port: 8080,
+	protocol: 'http'
+};
+
+ProxyVerifier.anonymityLevel(proxy, function(error, anonymityLevel) {
+
+	if (error) {
+		// Some unusual error occurred.
+	} else {
+		// anonymityLevel will be a string equal to "transparent", "anonymous", or "elite".
+	}
+});
+```
+
+Anonymity levels explained:
+* __transparent__ - The proxy does not hide the requester's IP address.
+* __anonymous__ - The proxy hides the requester's IP address, but adds headers to the forwarded request that make it clear that the request was made using a proxy.
+* __elite__ - The proxy hides the requester's IP address and does not add any proxy-related headers to the request.
+
+### country
+
+`country(proxy)`
+
+Performs a geoip lookup on the proxy's IP address to determine in which country it is located. Uses [geoip-native-lite](https://github.com/chill117/geoip-native-lite) for super fast geoip lookups. Works with both IPv4 and IPv6.
+
+Usage:
+```js
+var ProxyVerifier = require('proxy-verifier');
+
+var proxy = {
+	ip_address: '127.0.0.1',
+	port: 8080,
+	protocol: 'http'
+};
+
+var options = {
+	// By default ipv6 country data is not loaded.
+	// To load it, uncomment the following line:
+	// ipv6: true
+};
+
+// Country data is not loaded automatically.
+// To perform country lookups you must load the country data first.
+ProxyVerifier.loadCountryData(options, function(error) {
+
+	if (error) {
+
+		// An error occurred while loading the country data.
+
+	} else {
+
+		// Can now perform country lookups.
+
+		var country = ProxyVerifier.country(proxy);
+
+		console.log('the proxy at ', proxy.ip_address, ' is geo-located in ', country);
+	}
+});
+```
+
+
 ## Contributing
 
 There are a number of ways you can contribute:

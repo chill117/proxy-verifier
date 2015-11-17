@@ -67,11 +67,26 @@ var ProxyVerifier = module.exports = {
 
 			ProxyVerifier.request('get', checkUrl, requestOptions, function(error) {
 
+				var result;
+
 				if (error) {
-					return cb(null, { ok: false, error: error });
+
+					result = {
+						ok: false,
+						error: {
+							message: error.message,
+							code: error.code
+						}
+					};
+
+				} else {
+
+					result = {
+						ok: true
+					};
 				}
 
-				cb(null, { ok: true });
+				cb(null, result);
 			});
 		},
 
