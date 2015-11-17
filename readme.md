@@ -160,6 +160,8 @@ Anonymity levels explained:
 
 Performs a geoip lookup on the proxy's IP address to determine in which country it is located. Uses [geoip-native-lite](https://github.com/chill117/geoip-native-lite) for super fast geoip lookups. Works with both IPv4 and IPv6.
 
+Returns [alpha-2 country code](https://en.wikipedia.org/wiki/ISO_3166-1) as string when successful. Returns `null` when the country could not be determined.
+
 Usage:
 ```js
 var ProxyVerifier = require('proxy-verifier');
