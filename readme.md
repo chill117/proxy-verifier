@@ -195,6 +195,33 @@ ProxyVerifier.loadCountryData(options, function(error) {
 });
 ```
 
+Usage with loading country data synchronously:
+```js
+var ProxyVerifier = require('proxy-verifier');
+
+var proxy = {
+	ip_address: '127.0.0.1',
+	port: 8080,
+	protocol: 'http'
+};
+
+var options = {
+	// By default ipv6 country data is not loaded.
+	// To load it, uncomment the following line:
+	// ipv6: true
+};
+
+// Country data is not loaded automatically.
+// To perform country lookups you must load the country data first.
+ProxyVerifier.loadCountryDataSync(options);
+
+// Can now perform country lookups.
+
+var country = ProxyVerifier.country(proxy);
+
+console.log('the proxy at ', proxy.ip_address, ' is geo-located in ', country);
+```
+
 
 ## Contributing
 

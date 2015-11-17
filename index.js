@@ -244,5 +244,10 @@ var ProxyVerifier = module.exports = {
 	loadCountryData: function(options, cb) {
 
 		GeoIpNativeLite.loadData(options, cb);
+	},
+
+	loadCountryDataSync: function(options) {
+
+		return GeoIpNativeLite.loadDataSync(options);
 	}
 };
