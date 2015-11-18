@@ -2,16 +2,16 @@
 
 var _ = require('underscore');
 var async = require('async');
-var fs = require('fs');
 var GeoIpNativeLite = require('geoip-native-lite');
-var net = require('net');
 var ProxyAgent = require('proxy-agent');
 var request = require('request');
 var url = require('url');
 
 var ProxyVerifier = module.exports = {
 
-	_checkUrl: 'http://bitproxies.eu/api/v1/check',
+	_protocolTestUrl: 'http://bitproxies.eu/api/v1/check',
+	_anonymityTestUrl: 'http://bitproxies.eu/api/v1/check',
+	_tunnelTestUrl: 'https://www.google.com',
 
 	/*
 		Array of header keys for exact matching.
@@ -23,10 +23,90 @@ var ProxyVerifier = module.exports = {
 	*/
 	_proxyRelatedHeaderKeywords: ['proxy'],
 
+	all: function(proxy, options, cb) {
+
+		if (_.isUndefined(cb)) {
+			cb = options;
+			options = null
+		}
+
+		options || (options = {});
+
+		var asyncTests = ['anonymityLevel', 'tunnel'];
+
+		if (_.has(proxy, 'protocols')) {
+			asyncTests.push('protocols');
+		} else if (_.has(proxy, 'protocol')) {
+			asyncTests.push('protocol');
+		}
+
+		var tasks = _.object(_.map(asyncTests, function(asyncTest) {
+			return [asyncTest, function(next) {
+				ProxyVerifier[asyncTest](proxy, options, function(error, result) {
+					next(null, result || null);
+				});
+			}];
+		}));
+
+		tasks.countryData = _.bind(ProxyVerifier.loadCountryData, ProxyVerifier);
+
+		async.parallel(tasks, function(error, results) {
+
+			if (error) {
+				return cb(error);
+			}
+
+			results = _.omit(results, 'countryData');
+			results.country = ProxyVerifier.country(proxy);
+
+			cb(null, results);
+		});
+	},
+
+	tunnel: function(proxy, options, cb) {
+
+		if (_.isUndefined(cb)) {
+			cb = options;
+			options = null
+		}
+
+		options || (options = {});
+
+		var testUrl = ProxyVerifier._tunnelTestUrl;
+
+		var requestOptions = _.extend({}, options, {
+			proxy:	_.clone(proxy)
+		});
+
+		ProxyVerifier.request('get', testUrl, requestOptions, function(error) {
+
+			var result;
+
+			if (error) {
+
+				result = {
+					ok: false,
+					error: {
+						message: error.message,
+						code: error.code
+					}
+				};
+
+			} else {
+
+				result = {
+					ok: true
+				};
+			}
+
+			cb(null, result);
+		});
+	},
+
 	protocols: function(proxy, options, cb) {
 
 		if (_.isUndefined(cb)) {
-			cb = cb;
+			cb = options;
 			options = null
 		}
 
@@ -51,19 +131,19 @@ var ProxyVerifier = module.exports = {
 	protocol: function(proxy, options, cb) {
 
 		if (_.isUndefined(cb)) {
-			cb = cb;
+			cb = options;
 			options = null
 		}
 
 		options || (options = {});
 
-		var checkUrl = ProxyVerifier._checkUrl;
+		var testUrl = ProxyVerifier._protocolTestUrl;
 
 		var requestOptions = _.extend({}, options, {
 			proxy:	_.clone(proxy)
 		});
 
-		ProxyVerifier.request('get', checkUrl, requestOptions, function(error) {
+		ProxyVerifier.request('get', testUrl, requestOptions, function(error) {
 
 			var result;
 
@@ -91,13 +171,13 @@ var ProxyVerifier = module.exports = {
 	anonymityLevel: function(proxy, options, cb) {
 
 		if (_.isUndefined(cb)) {
-			cb = cb;
+			cb = options;
 			options = null
 		}
 
 		options || (options = {});
 
-		var checkUrl = ProxyVerifier._checkUrl;
+		var testUrl = ProxyVerifier._anonymityTestUrl;
 
 		async.parallel({
 
@@ -105,14 +185,14 @@ var ProxyVerifier = module.exports = {
 
 				var requestOptions = _.extend({}, options, { proxy: proxy });
 
-				ProxyVerifier.request('get', checkUrl, requestOptions, next);
+				ProxyVerifier.request('get', testUrl, requestOptions, next);
 			},
 
 			withoutProxy: function(next) {
 
 				var requestOptions = options;
 
-				ProxyVerifier.request('get', checkUrl, requestOptions, next);
+				ProxyVerifier.request('get', testUrl, requestOptions, next);
 			}
 
 		}, function(error, results) {

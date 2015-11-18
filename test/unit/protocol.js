@@ -14,7 +14,7 @@ describe('protocol(proxy[, options], cb)', function() {
 
 		appServer = helpers.createAppServer(3001, '127.0.0.1');
 
-		ProxyVerifier._checkUrl = 'http://127.0.0.1:3001/check';
+		ProxyVerifier._protocolTestUrl = 'http://127.0.0.1:3001/check';
 	});
 
 	after(function() {
