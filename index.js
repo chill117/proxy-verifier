@@ -75,10 +75,10 @@ var ProxyVerifier = module.exports = {
 		var testUrl = ProxyVerifier._tunnelTestUrl;
 
 		var requestOptions = _.extend({}, options, {
-			proxy:	_.clone(proxy)
+			proxy: _.clone(proxy)
 		});
 
-		ProxyVerifier.request('get', testUrl, requestOptions, function(error) {
+		ProxyVerifier.request('get', testUrl, requestOptions, function(error, data, status, headers) {
 
 			var result;
 

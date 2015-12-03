@@ -35,15 +35,17 @@ module.exports = {
 	createProxyServer: function(port, host, options) {
 
 		options || (options = {});
-
+		options = _.defaults(options, { tunnel: true });
 		options.localAddress = host;
 
-		var proxy = httpProxy.createProxyServer(options);
+		var proxy = httpProxy.createProxyServer(_.omit(options, 'tunnel'));
 
 		proxy.http = http.createServer(function(req, res) {
 
+			var target = _.omit(url.parse(req.url), 'path');
+
 			proxy.web(req, res, {
-				target: _.omit(url.parse(req.url), 'path')
+				target: target
 			});
 
 		}).listen(port, host);
@@ -64,31 +66,33 @@ module.exports = {
 
 		}).listen(port + 1, host);
 
-		function connectTunnel(req, cltSocket, head) {
+		if (options.tunnel) {
 
-			// Bind local address of proxy server.
-			var srvSocket = new net.Socket({
-				handle: net._createServerHandle(host)
-			});
+			function connectTunnel(req, cltSocket, head) {
 
-			// Connect to an origin server.
-			var srvUrl = url.parse('http://' + req.url);
+				// Bind local address of proxy server.
+				var srvSocket = new net.Socket({
+					handle: net._createServerHandle(host)
+				});
 
-			srvSocket.connect(srvUrl.port, srvUrl.hostname, function() {
-				cltSocket.write(
-					'HTTP/1.1 200 Connection Established\r\n' +
-					'Proxy-agent: Node.js-Proxy\r\n' +
-					'\r\n'
-				);
-				srvSocket.write(head);
-				srvSocket.pipe(cltSocket);
-				cltSocket.pipe(srvSocket);
-			});
+				// Connect to an origin server.
+				var srvUrl = url.parse('http://' + req.url);
+
+				srvSocket.connect(srvUrl.port, srvUrl.hostname, function() {
+					cltSocket.write(
+						'HTTP/1.1 200 Connection Established\r\n' +
+						'Proxy-agent: Node.js-Proxy\r\n' +
+						'\r\n'
+					);
+					srvSocket.write(head);
+					srvSocket.pipe(cltSocket);
+					cltSocket.pipe(srvSocket);
+				});
+			}
+
+			proxy.http.on('connect', connectTunnel);
+			proxy.https.on('connect', connectTunnel);
 		}
-
-		// Tunneling.
-		proxy.http.on('connect', connectTunnel);
-		proxy.https.on('connect', connectTunnel);
 
 		return proxy;
 	}

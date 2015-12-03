@@ -85,7 +85,7 @@ describe('request(method, url[, options], cb)', function() {
 
 						it(proxyProtocol + ' --> ' + targetProtocol + ' request should succeed', function(done) {
 
-							var proxy =  {
+							var proxy = {
 								ip_address: proxyServer[proxyProtocol].address().address,
 								port: proxyServer[proxyProtocol].address().port,
 								protocols: [proxyProtocol]

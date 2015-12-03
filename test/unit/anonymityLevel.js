@@ -78,15 +78,11 @@ describe('anonymityLevel(proxy[, options], cb)', function() {
 
 				var proxyServer = proxyServers[anonymityLevel][index];
 
-				var proxy =  {
+				var proxy = {
 					ip_address: proxyServer.http.address().address,
 					port: proxyServer.http.address().port,
 					protocols: ['http']
 				};
-
-				var targetHost = appServer.http.address().address;
-				var targetPort = appServer.http.address().port;
-				var url = 'http://' + targetHost + ':' + targetPort + '/check';
 
 				var requestOptions = {
 					strictSSL: false,

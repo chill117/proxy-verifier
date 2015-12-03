@@ -50,15 +50,11 @@ describe('protocol(proxy[, options], cb)', function() {
 
 			it(proxyProtocol, function(done) {
 
-				var proxy =  {
+				var proxy = {
 					ip_address: proxyServer[proxyProtocol].address().address,
 					port: proxyServer[proxyProtocol].address().port,
 					protocols: [proxyProtocol]
 				};
-
-				var targetHost = appServer.http.address().address;
-				var targetPort = appServer.http.address().port;
-				var url = 'http://' + targetHost + ':' + targetPort + '/check';
 
 				var requestOptions = {
 					strictSSL: false,
@@ -95,15 +91,11 @@ describe('protocol(proxy[, options], cb)', function() {
 
 			it(proxyProtocol + ' as ' + wrongProtocol, function(done) {
 
-				var proxy =  {
+				var proxy = {
 					ip_address: proxyServer[proxyProtocol].address().address,
 					port: proxyServer[proxyProtocol].address().port,
 					protocols: [wrongProtocol]
 				};
-
-				var targetHost = appServer.http.address().address;
-				var targetPort = appServer.http.address().port;
-				var url = 'http://' + targetHost + ':' + targetPort + '/check';
 
 				var requestOptions = {
 					strictSSL: false,
