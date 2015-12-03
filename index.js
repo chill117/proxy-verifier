@@ -11,7 +11,7 @@ var ProxyVerifier = module.exports = {
 
 	_protocolTestUrl: 'http://bitproxies.eu/api/v1/check',
 	_anonymityTestUrl: 'http://bitproxies.eu/api/v1/check',
-	_tunnelTestUrl: 'https://www.google.com',
+	_tunnelTestUrl: 'https://bitproxies.eu/api/v1/check',
 
 	/*
 		Array of header keys for exact matching.
