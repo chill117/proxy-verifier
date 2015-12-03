@@ -19,7 +19,9 @@ This will install `proxy-verifier` and add it to your application's `package.jso
 * [protocol](#protocol)
 * [protocols](#protocols)
 * [anonymityLevel](#anonymitylevel)
+* [tunnel](#tunnel)
 * [country](#country)
+
 
 ### protocol
 
@@ -64,6 +66,7 @@ Sample `result` when the proxy is not working:
 	}
 }
 ```
+
 
 ### protocols
 
@@ -123,6 +126,7 @@ Sample `results` when the proxy is not working for any of the protocols:
 }
 ```
 
+
 ### anonymityLevel
 
 `anonymityLevel(proxy[, options], cb)`
@@ -153,6 +157,52 @@ Anonymity levels explained:
 * __transparent__ - The proxy does not hide the requester's IP address.
 * __anonymous__ - The proxy hides the requester's IP address, but adds headers to the forwarded request that make it clear that the request was made using a proxy.
 * __elite__ - The proxy hides the requester's IP address and does not add any proxy-related headers to the request.
+
+
+### tunnel
+
+`tunnel(proxy[, options], cb)`
+
+Check to see if the proxy supports [HTTP tunneling](https://en.wikipedia.org/wiki/HTTP_tunnel). The `options` argument is passed through to the `request()` method which uses [request](https://github.com/request/request).
+
+Usage:
+```js
+var ProxyVerifier = require('proxy-verifier');
+
+var proxy = {
+	ip_address: '127.0.0.1',
+	port: 8888,
+	protocol: 'http'
+};
+
+ProxyVerifier.tunnel(proxy, function(error, result) {
+
+	if (error) {
+		// Some unusual error occurred.
+	} else {
+		// The result object will contain success/error information.
+	}
+});
+```
+
+Sample `result` when the proxy supports tunneling:
+```js
+{
+	ok: true
+}
+```
+
+Sample `result` when the proxy does not support tunneling:
+```js
+{
+	ok: false,
+	error: {
+		message: 'socket hang up',
+		code: 'ECONNRESET'
+	}
+}
+```
+
 
 ### country
 
