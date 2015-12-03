@@ -68,32 +68,34 @@ module.exports = {
 
 		if (options.tunnel) {
 
-			function connectTunnel(req, cltSocket, head) {
+			var handleConnect = _.bind(connectTunnel, undefined, host);
 
-				// Bind local address of proxy server.
-				var srvSocket = new net.Socket({
-					handle: net._createServerHandle(host)
-				});
-
-				// Connect to an origin server.
-				var srvUrl = url.parse('http://' + req.url);
-
-				srvSocket.connect(srvUrl.port, srvUrl.hostname, function() {
-					cltSocket.write(
-						'HTTP/1.1 200 Connection Established\r\n' +
-						'Proxy-agent: Node.js-Proxy\r\n' +
-						'\r\n'
-					);
-					srvSocket.write(head);
-					srvSocket.pipe(cltSocket);
-					cltSocket.pipe(srvSocket);
-				});
-			}
-
-			proxy.http.on('connect', connectTunnel);
-			proxy.https.on('connect', connectTunnel);
+			proxy.http.on('connect', handleConnect);
+			proxy.https.on('connect', handleConnect);
 		}
 
 		return proxy;
 	}
 };
+
+function connectTunnel(host, req, cltSocket, head) {
+
+	// Bind local address of proxy server.
+	var srvSocket = new net.Socket({
+		handle: net._createServerHandle(host)
+	});
+
+	// Connect to an origin server.
+	var srvUrl = url.parse('http://' + req.url);
+
+	srvSocket.connect(srvUrl.port, srvUrl.hostname, function() {
+		cltSocket.write(
+			'HTTP/1.1 200 Connection Established\r\n' +
+			'Proxy-agent: Node.js-Proxy\r\n' +
+			'\r\n'
+		);
+		srvSocket.write(head);
+		srvSocket.pipe(cltSocket);
+		cltSocket.pipe(srvSocket);
+	});
+}
