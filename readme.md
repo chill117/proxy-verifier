@@ -16,11 +16,55 @@ This will install `proxy-verifier` and add it to your application's `package.jso
 
 ## How to Use
 
+* [all](#all)
 * [protocol](#protocol)
 * [protocols](#protocols)
 * [anonymityLevel](#anonymitylevel)
 * [tunnel](#tunnel)
 * [country](#country)
+
+
+### all
+
+`all(proxy[, options], cb)`
+
+Runs all test methods for the given proxy. The `options` argument is passed through to every test method (except `country`).
+
+Usage:
+```js
+var ProxyVerifier = require('proxy-verifier');
+
+var proxy = {
+	ip_address: '127.0.0.1',
+	port: 8888,
+	protocol: 'http'
+};
+
+ProxyVerifier.all(proxy, function(error, result) {
+
+	if (error) {
+		// Some unusual error occurred.
+	} else {
+		// The result object will contain success/error information.
+	}
+});
+```
+
+Sample `result`:
+```js
+{
+	anonymityLevel: 'elite',
+	protocols: {
+		http: {
+			ok: true
+		}
+	},
+	tunnel: {
+		ok: true
+	},
+	country: 'cz'
+}
+```
 
 
 ### protocol

@@ -32,7 +32,10 @@ var ProxyVerifier = module.exports = {
 
 		options || (options = {});
 
-		var asyncTests = ['anonymityLevel', 'tunnel'];
+		var asyncTests = [
+			'anonymityLevel',
+			'tunnel'
+		];
 
 		if (_.has(proxy, 'protocols')) {
 			asyncTests.push('protocols');
@@ -48,18 +51,22 @@ var ProxyVerifier = module.exports = {
 			}];
 		}));
 
-		tasks.countryData = _.bind(ProxyVerifier.loadCountryData, ProxyVerifier);
-
-		async.parallel(tasks, function(error, results) {
+		ProxyVerifier.loadCountryData(function(error) {
 
 			if (error) {
 				return cb(error);
 			}
 
-			results = _.omit(results, 'countryData');
-			results.country = ProxyVerifier.country(proxy);
+			async.parallel(tasks, function(error, results) {
 
-			cb(null, results);
+				if (error) {
+					return cb(error);
+				}
+
+				results.country = ProxyVerifier.country(proxy);
+
+				cb(null, results);
+			});
 		});
 	},
 

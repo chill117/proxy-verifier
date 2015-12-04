@@ -23,11 +23,6 @@ describe('tunnel(proxy[, options], cb)', function() {
 		appServer.https.close();
 	});
 
-	it('should be a function', function() {
-
-		expect(ProxyVerifier.tunnel).to.be.a('function');
-	});
-
 	var proxyServers = {};
 
 	before(function() {
@@ -45,11 +40,15 @@ describe('tunnel(proxy[, options], cb)', function() {
 		});
 	});
 
+	it('should be a function', function() {
+
+		expect(ProxyVerifier.tunnel).to.be.a('function');
+	});
+
 	it('proxy with tunneling', function(done) {
 
 		var proxyServer = proxyServers.withTunneling;
 		var proxyProtocol = 'http';
-		var targetProtocol = 'https';
 
 		var proxy = {
 			ip_address: proxyServer[proxyProtocol].address().address,
@@ -87,7 +86,6 @@ describe('tunnel(proxy[, options], cb)', function() {
 
 		var proxyServer = proxyServers.withoutTunneling;
 		var proxyProtocol = 'http';
-		var targetProtocol = 'https';
 
 		var proxy = {
 			ip_address: proxyServer[proxyProtocol].address().address,
