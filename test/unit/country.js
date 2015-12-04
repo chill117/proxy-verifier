@@ -5,7 +5,7 @@ var expect = require('chai').expect;
 
 var ProxyVerifier = require('../../');
 
-describe('country(proxy)', function() {
+describe('lookupCountry(proxy)', function() {
 
 	var proxies = require('../fixtures/proxies');
 
@@ -16,7 +16,7 @@ describe('country(proxy)', function() {
 
 	it('should be a function', function() {
 
-		expect(ProxyVerifier.country).to.be.a('function');
+		expect(ProxyVerifier.lookupCountry).to.be.a('function');
 	});
 
 	_.each(_.keys(proxies), function(ipType) {
@@ -27,7 +27,7 @@ describe('country(proxy)', function() {
 
 				_.each(proxies[ipType], function(proxy) {
 
-					var country = ProxyVerifier.country(proxy);
+					var country = ProxyVerifier.lookupCountry(proxy);
 
 					try {
 						expect(country).to.equal(proxy.country);

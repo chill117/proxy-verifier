@@ -7,7 +7,7 @@ var expect = require('chai').expect;
 var ProxyVerifier = require('../../');
 var helpers = require('../helpers');
 
-describe('anonymityLevel(proxy[, options], cb)', function() {
+describe('testAnonymityLevel(proxy[, options], cb)', function() {
 
 	var appServer;
 
@@ -67,7 +67,7 @@ describe('anonymityLevel(proxy[, options], cb)', function() {
 
 	it('should be a function', function() {
 
-		expect(ProxyVerifier.anonymityLevel).to.be.a('function');
+		expect(ProxyVerifier.testAnonymityLevel).to.be.a('function');
 	});
 
 	_.each(_.keys(proxyServers), function(anonymityLevel) {
@@ -91,7 +91,7 @@ describe('anonymityLevel(proxy[, options], cb)', function() {
 					}
 				};
 
-				ProxyVerifier.anonymityLevel(proxy, requestOptions, function(error, result) {
+				ProxyVerifier.testAnonymityLevel(proxy, requestOptions, function(error, result) {
 
 					try {
 						expect(error).to.equal(null);

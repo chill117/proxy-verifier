@@ -29,6 +29,7 @@
   },
   "dependencies": {
     "async": "1.5.0",
+    "depd": "^1.1.0",
     "geoip-native-lite": "0.0.2",
     "proxy-agent": "2.0.0",
     "request": "2.67.0",

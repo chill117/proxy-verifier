@@ -6,7 +6,7 @@ var expect = require('chai').expect;
 var ProxyVerifier = require('../../');
 var helpers = require('../helpers');
 
-describe('all(proxy[, options], cb)', function() {
+describe('testAll(proxy[, options], cb)', function() {
 
 	var appServer;
 
@@ -27,7 +27,7 @@ describe('all(proxy[, options], cb)', function() {
 
 	it('should be a function', function() {
 
-		expect(ProxyVerifier.all).to.be.a('function');
+		expect(ProxyVerifier.testAll).to.be.a('function');
 	});
 
 	describe('good proxy', function() {
@@ -65,7 +65,7 @@ describe('all(proxy[, options], cb)', function() {
 					timeout: 100
 				};
 
-				ProxyVerifier.all(proxy, requestOptions, function(error, result) {
+				ProxyVerifier.testAll(proxy, requestOptions, function(error, result) {
 
 					try {
 						expect(error).to.equal(null);

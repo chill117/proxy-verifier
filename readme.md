@@ -345,3 +345,14 @@ To run only code-style checks:
 ```
 grunt test:code-style
 ```
+
+
+## Changelog
+
+* v0.2.0:
+  * Renamed `all` to `testAll`. `all` method now prints a deprecated warning.
+  * Renamed `protocol` to `testProtocol`. `protocol` method now prints a deprecated warning.
+  * Renamed `protocols` to `testProtocols`. `protocols` method now prints a deprecated warning.
+  * Renamed `anonymityLevel` to `testAnonymityLevel`. `anonymityLevel` method now prints a deprecated warning.
+  * Renamed `tunnel` to `testTunnel`. `tunnel` method now prints a deprecated warning.
+  * Renamed `country` to `lookupCountry`. `country` method now prints a deprecated warning.

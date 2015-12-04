@@ -2,6 +2,7 @@
 
 var _ = require('underscore');
 var async = require('async');
+var deprecate = require('depd')('ProxyVerifier')
 var GeoIpNativeLite = require('geoip-native-lite');
 var ProxyAgent = require('proxy-agent');
 var request = require('request');
@@ -23,7 +24,7 @@ var ProxyVerifier = module.exports = {
 	*/
 	_proxyRelatedHeaderKeywords: ['proxy'],
 
-	all: function(proxy, options, cb) {
+	testAll: function(proxy, options, cb) {
 
 		if (_.isUndefined(cb)) {
 			cb = options;
@@ -32,20 +33,21 @@ var ProxyVerifier = module.exports = {
 
 		options || (options = {});
 
-		var asyncTests = [
-			'anonymityLevel',
-			'tunnel'
-		];
+		var asyncTests = {
+			anonymityLevel: 'testAnonymityLevel',
+			tunnel: 'testTunnel'
+		};
 
 		if (_.has(proxy, 'protocols')) {
-			asyncTests.push('protocols');
+			asyncTests.protocols = 'testProtocols';
 		} else if (_.has(proxy, 'protocol')) {
-			asyncTests.push('protocol');
+			asyncTests.protocol = 'testProtocol';
 		}
 
-		var tasks = _.object(_.map(asyncTests, function(asyncTest) {
-			return [asyncTest, function(next) {
-				ProxyVerifier[asyncTest](proxy, options, function(error, result) {
+		var tasks = _.object(_.map(_.keys(asyncTests), function(key) {
+			var fn = ProxyVerifier[asyncTests[key]];
+			return [key, function(next) {
+				fn(proxy, options, function(error, result) {
 					next(null, result || null);
 				});
 			}];
@@ -63,14 +65,14 @@ var ProxyVerifier = module.exports = {
 					return cb(error);
 				}
 
-				results.country = ProxyVerifier.country(proxy);
+				results.country = ProxyVerifier.lookupCountry(proxy);
 
 				cb(null, results);
 			});
 		});
 	},
 
-	tunnel: function(proxy, options, cb) {
+	testTunnel: function(proxy, options, cb) {
 
 		if (_.isUndefined(cb)) {
 			cb = options;
@@ -110,7 +112,7 @@ var ProxyVerifier = module.exports = {
 		});
 	},
 
-	protocols: function(proxy, options, cb) {
+	testProtocols: function(proxy, options, cb) {
 
 		if (_.isUndefined(cb)) {
 			cb = options;
@@ -129,13 +131,13 @@ var ProxyVerifier = module.exports = {
 
 		var tests = _.object(_.map(proxy.protocols, function(protocol) {
 			var _proxy = _.extend({}, proxy, { protocol: protocol });
-			return [protocol, _.bind(ProxyVerifier.protocol, undefined, _proxy, options)];
+			return [protocol, _.bind(ProxyVerifier.testProtocol, undefined, _proxy, options)];
 		}));
 
 		async.parallel(tests, cb);
 	},
 
-	protocol: function(proxy, options, cb) {
+	testProtocol: function(proxy, options, cb) {
 
 		if (_.isUndefined(cb)) {
 			cb = options;
@@ -175,7 +177,7 @@ var ProxyVerifier = module.exports = {
 		});
 	},
 
-	anonymityLevel: function(proxy, options, cb) {
+	testAnonymityLevel: function(proxy, options, cb) {
 
 		if (_.isUndefined(cb)) {
 			cb = options;
@@ -241,7 +243,7 @@ var ProxyVerifier = module.exports = {
 		});
 	},
 
-	country: function(proxy) {
+	lookupCountry: function(proxy) {
 
 		return GeoIpNativeLite.lookup(proxy.ip_address);
 	},
@@ -338,3 +340,29 @@ var ProxyVerifier = module.exports = {
 		return GeoIpNativeLite.loadDataSync(options);
 	}
 };
+
+// For backwards compatibility, but with deprecated warnings.
+ProxyVerifier.all = deprecate.function(
+	ProxyVerifier.testAll,
+	'all() has been deprecated; use testAll() instead'
+);
+ProxyVerifier.protocol = deprecate.function(
+	ProxyVerifier.testProtocol,
+	'protocol() has been deprecated; use testProtocol() instead'
+);
+ProxyVerifier.protocols = deprecate.function(
+	ProxyVerifier.testProtocols,
+	'protocols() has been deprecated; use testProtocols() instead'
+);
+ProxyVerifier.anonymityLevel = deprecate.function(
+	ProxyVerifier.testAnonymityLevel,
+	'anonymityLevel() has been deprecated; use testAnonymityLevel() instead'
+);
+ProxyVerifier.tunnel = deprecate.function(
+	ProxyVerifier.testTunnel,
+	'tunnel() has been deprecated; use testTunnel() instead'
+);
+ProxyVerifier.country = deprecate.function(
+	ProxyVerifier.lookupCountry,
+	'country() has been deprecated; use lookupCountry() instead'
+);

@@ -5,20 +5,20 @@ var expect = require('chai').expect;
 
 var ProxyVerifier = require('../../');
 
-describe('protocols(proxy[, options], cb)', function() {
+describe('testProtocols(proxy[, options], cb)', function() {
 
 	it('should be a function', function() {
 
-		expect(ProxyVerifier.protocols).to.be.a('function');
+		expect(ProxyVerifier.testProtocols).to.be.a('function');
 	});
 
-	it('should call protocol(proxy[, option], cb) for each protocol in proxy.protocols', function() {
+	it('should call testProtocol(proxy[, option], cb) for each protocol in proxy.protocols', function() {
 
-		var originalCheckProtocolFn = ProxyVerifier.protocol;
+		var originalCheckProtocolFn = ProxyVerifier.testProtocol;
 		var testOptions = { some: 'option' };
 		var checked = {};
 
-		ProxyVerifier.protocol = function(proxy, options) {
+		ProxyVerifier.testProtocol = function(proxy, options) {
 
 			// Options should be passed through.
 			expect(options).to.deep.equal(testOptions);
@@ -35,7 +35,7 @@ describe('protocols(proxy[, options], cb)', function() {
 			protocols: ['https', 'http', 'socks4']
 		};
 
-		ProxyVerifier.protocols(proxy, testOptions, function() {});
+		ProxyVerifier.testProtocols(proxy, testOptions, function() {});
 
 		expect(_.keys(checked)).to.have.length(proxy.protocols.length);
 
@@ -45,6 +45,6 @@ describe('protocols(proxy[, options], cb)', function() {
 
 		expect(allProtocolsChecked).to.equal(true);
 
-		ProxyVerifier.protocol = originalCheckProtocolFn;
+		ProxyVerifier.testProtocol = originalCheckProtocolFn;
 	});
 });

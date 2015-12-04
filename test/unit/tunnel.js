@@ -6,7 +6,7 @@ var expect = require('chai').expect;
 var ProxyVerifier = require('../../');
 var helpers = require('../helpers');
 
-describe('tunnel(proxy[, options], cb)', function() {
+describe('testTunnel(proxy[, options], cb)', function() {
 
 	var appServer;
 
@@ -42,7 +42,7 @@ describe('tunnel(proxy[, options], cb)', function() {
 
 	it('should be a function', function() {
 
-		expect(ProxyVerifier.tunnel).to.be.a('function');
+		expect(ProxyVerifier.testTunnel).to.be.a('function');
 	});
 
 	it('proxy with tunneling', function(done) {
@@ -64,7 +64,7 @@ describe('tunnel(proxy[, options], cb)', function() {
 			timeout: 100
 		};
 
-		ProxyVerifier.tunnel(proxy, requestOptions, function(error, result) {
+		ProxyVerifier.testTunnel(proxy, requestOptions, function(error, result) {
 
 			if (error) {
 				return done(error);
@@ -101,7 +101,7 @@ describe('tunnel(proxy[, options], cb)', function() {
 			timeout: 100
 		};
 
-		ProxyVerifier.tunnel(proxy, requestOptions, function(error, result) {
+		ProxyVerifier.testTunnel(proxy, requestOptions, function(error, result) {
 
 			if (error) {
 				return done(error);
