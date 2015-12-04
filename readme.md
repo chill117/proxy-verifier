@@ -16,19 +16,19 @@ This will install `proxy-verifier` and add it to your application's `package.jso
 
 ## How to Use
 
-* [all](#all)
-* [protocol](#protocol)
-* [protocols](#protocols)
-* [anonymityLevel](#anonymitylevel)
-* [tunnel](#tunnel)
-* [country](#country)
+* [testAll](#testall)
+* [testProtocol](#testprotocol)
+* [testProtocols](#testprotocols)
+* [testAnonymityLevel](#testanonymitylevel)
+* [testTunnel](#testtunnel)
+* [lookupCountry](#lookupcountry)
 
 
-### all
+### testAll
 
-`all(proxy[, options], cb)`
+`testAll(proxy[, options], cb)`
 
-Runs all test methods for the given proxy. The `options` argument is passed through to every test method (except `country`).
+Runs all test methods for the given proxy. The `options` argument is passed through to every test method (except `lookupCountry`).
 
 Usage:
 ```js
@@ -40,7 +40,7 @@ var proxy = {
 	protocol: 'http'
 };
 
-ProxyVerifier.all(proxy, function(error, result) {
+ProxyVerifier.testAll(proxy, function(error, result) {
 
 	if (error) {
 		// Some unusual error occurred.
@@ -67,9 +67,9 @@ Sample `result`:
 ```
 
 
-### protocol
+### testProtocol
 
-`protocol(proxy[, options], cb)`
+`testProtocol(proxy[, options], cb)`
 
 Check that the proxy works with the specified protocol. The `options` argument is passed through to the `request()` method which uses [request](https://github.com/request/request).
 
@@ -83,7 +83,7 @@ var proxy = {
 	protocol: 'http'
 };
 
-ProxyVerifier.protocol(proxy, function(error, result) {
+ProxyVerifier.testProtocol(proxy, function(error, result) {
 
 	if (error) {
 		// Some unusual error occurred.
@@ -112,9 +112,9 @@ Sample `result` when the proxy is not working:
 ```
 
 
-### protocols
+### testProtocols
 
-`protocols(proxy[, options], cb)`
+`testProtocols(proxy[, options], cb)`
 
 Check that the proxy works with the specified protocols. The `options` argument is passed through to the `request()` method which uses [request](https://github.com/request/request).
 
@@ -128,7 +128,7 @@ var proxy = {
 	protocols: ['http', 'https']
 };
 
-ProxyVerifier.protocols(proxy, function(error, results) {
+ProxyVerifier.testProtocols(proxy, function(error, results) {
 
 	if (error) {
 		// Some unusual error occurred.
@@ -171,9 +171,9 @@ Sample `results` when the proxy is not working for any of the protocols:
 ```
 
 
-### anonymityLevel
+### testAnonymityLevel
 
-`anonymityLevel(proxy[, options], cb)`
+`testAnonymityLevel(proxy[, options], cb)`
 
 Check the anonymity level of the proxy. The `options` argument is passed through to the `request()` method which uses [request](https://github.com/request/request).
 
@@ -187,7 +187,7 @@ var proxy = {
 	protocol: 'http'
 };
 
-ProxyVerifier.anonymityLevel(proxy, function(error, anonymityLevel) {
+ProxyVerifier.testAnonymityLevel(proxy, function(error, anonymityLevel) {
 
 	if (error) {
 		// Some unusual error occurred.
@@ -203,9 +203,9 @@ Anonymity levels explained:
 * __elite__ - The proxy hides the requester's IP address and does not add any proxy-related headers to the request.
 
 
-### tunnel
+### testTunnel
 
-`tunnel(proxy[, options], cb)`
+`testTunnel(proxy[, options], cb)`
 
 Check to see if the proxy supports [HTTP tunneling](https://en.wikipedia.org/wiki/HTTP_tunnel). The `options` argument is passed through to the `request()` method which uses [request](https://github.com/request/request).
 
@@ -219,7 +219,7 @@ var proxy = {
 	protocol: 'http'
 };
 
-ProxyVerifier.tunnel(proxy, function(error, result) {
+ProxyVerifier.testTunnel(proxy, function(error, result) {
 
 	if (error) {
 		// Some unusual error occurred.
@@ -248,9 +248,9 @@ Sample `result` when the proxy does not support tunneling:
 ```
 
 
-### country
+### lookupCountry
 
-`country(proxy)`
+`lookupCountry(proxy)`
 
 Performs a geoip lookup on the proxy's IP address to determine in which country it is located. Uses [geoip-native-lite](https://github.com/chill117/geoip-native-lite) for super fast geoip lookups. Works with both IPv4 and IPv6.
 
@@ -284,7 +284,7 @@ ProxyVerifier.loadCountryData(options, function(error) {
 
 		// Can now perform country lookups.
 
-		var country = ProxyVerifier.country(proxy);
+		var country = ProxyVerifier.lookupCountry(proxy);
 
 		console.log('the proxy at ', proxy.ip_address, ' is geo-located in ', country);
 	}
@@ -313,7 +313,7 @@ ProxyVerifier.loadCountryDataSync(options);
 
 // Can now perform country lookups.
 
-var country = ProxyVerifier.country(proxy);
+var country = ProxyVerifier.lookupCountry(proxy);
 
 console.log('the proxy at ', proxy.ip_address, ' is geo-located in ', country);
 ```
