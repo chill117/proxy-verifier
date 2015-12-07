@@ -66,11 +66,8 @@ describe('testTunnel(proxy[, options], cb)', function() {
 
 		ProxyVerifier.testTunnel(proxy, requestOptions, function(error, result) {
 
-			if (error) {
-				return done(error);
-			}
-
 			try {
+				expect(error).to.equal(null);
 				expect(result).to.be.an('object');
 				expect(result.ok).to.equal(true);
 				expect(result.error).to.equal(undefined);
@@ -103,11 +100,8 @@ describe('testTunnel(proxy[, options], cb)', function() {
 
 		ProxyVerifier.testTunnel(proxy, requestOptions, function(error, result) {
 
-			if (error) {
-				return done(error);
-			}
-
 			try {
+				expect(error).to.equal(null);
 				expect(result).to.be.an('object');
 				expect(result.ok).to.equal(false);
 				expect(result.error).to.not.equal(undefined);
