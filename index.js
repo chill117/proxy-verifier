@@ -211,18 +211,47 @@ var ProxyVerifier = module.exports = {
 			}
 
 			var anonymityLevel;
-			var withProxy = results.withProxy[0];
-			var withoutProxy = results.withoutProxy[0];
-			var myIpAddress = withoutProxy.ip_address;
+
+			var withProxy = {
+				data: results.withProxy[0],
+				status: results.withProxy[1],
+				headers: results.withProxy[2]
+			};
+
+			var withoutProxy = {
+				data: results.withoutProxy[0],
+				status: results.withoutProxy[1],
+				headers: results.withoutProxy[2]
+			};
+
+			if (
+				withoutProxy.status !== 200 ||
+				!_.isObject(withoutProxy.data) ||
+				!_.has(withoutProxy.data, 'ip_address') ||
+				!_.has(withoutProxy.data, 'headers')
+			) {
+				return cb(new Error('Failed to reach proxy checking service.'));
+			}
+
+			if (
+				withProxy.status !== 200 ||
+				!_.isObject(withProxy.data) ||
+				!_.has(withProxy.data, 'ip_address') ||
+				!_.has(withProxy.data, 'headers')
+			) {
+				return cb(new Error('Failed to reach proxy checking service via proxy.'));
+			}
+
+			var myIpAddress = withoutProxy.data.ip_address;
 
 			// If the requesting host's IP address is in any of the headers, then "transparent".
-			if (withProxy.ip_address === myIpAddress || _.contains(_.values(withProxy.headers), myIpAddress)) {
+			if (withProxy.data.ip_address === myIpAddress || _.contains(_.values(withProxy.data.headers), myIpAddress)) {
 				anonymityLevel = 'transparent';
 			} else {
 
 				var proxyHeaders = ProxyVerifier._proxyHeaders;
 				var proxyKeywords = ProxyVerifier._proxyRelatedHeaderKeywords;
-				var headerKeys = _.keys(withProxy.headers);
+				var headerKeys = _.keys(withProxy.data.headers);
 
 				var hasProxyHeaders = _.some(proxyHeaders, function(proxyHeader) {
 					return _.contains(headerKeys, proxyHeader) || _.some(headerKeys, function(headerKey) {
