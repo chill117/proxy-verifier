@@ -33,41 +33,61 @@ var ProxyVerifier = module.exports = {
 
 		options || (options = {});
 
-		var asyncTests = {
-			anonymityLevel: 'testAnonymityLevel',
-			tunnel: 'testTunnel'
-		};
-
-		if (_.has(proxy, 'protocols')) {
-			asyncTests.protocols = 'testProtocols';
-		} else if (_.has(proxy, 'protocol')) {
-			asyncTests.protocol = 'testProtocol';
+		if (!_.has(proxy, 'protocols') && _.has(proxy, 'protocol')) {
+			proxy.protocols = [proxy.protocol];
 		}
 
-		var tasks = _.object(_.map(_.keys(asyncTests), function(key) {
-			var fn = ProxyVerifier[asyncTests[key]];
-			return [key, function(next) {
-				fn(proxy, options, function(error, result) {
-					next(null, result || null);
-				});
-			}];
-		}));
-
-		ProxyVerifier.loadCountryData(function(error) {
+		ProxyVerifier.testProtocols(proxy, options, function(error, protocolsResult) {
 
 			if (error) {
 				return cb(error);
 			}
 
-			async.parallel(tasks, function(error, results) {
+			var workingProtocols = _.filter(_.keys(protocolsResult), function(protocol) {
+				return protocolsResult[protocol].ok === true;
+			});
+
+			proxy.protocols = workingProtocols;
+
+			var asyncTests = {};
+
+			if (!_.isEmpty(workingProtocols)) {
+				asyncTests.anonymityLevel = 'testAnonymityLevel';
+				asyncTests.tunnel = 'testTunnel';
+			}
+
+			var tasks = _.object(_.map(_.keys(asyncTests), function(key) {
+				var fn = ProxyVerifier[asyncTests[key]];
+				return [key, function(next) {
+					fn(proxy, options, function(error, result) {
+						next(null, result || null);
+					});
+				}];
+			}));
+
+			ProxyVerifier.loadCountryData(function(error) {
 
 				if (error) {
 					return cb(error);
 				}
 
-				results.country = ProxyVerifier.lookupCountry(proxy);
+				async.parallel(tasks, function(error, results) {
 
-				cb(null, results);
+					if (error) {
+						return cb(error);
+					}
+
+					results.protocols = protocolsResult;
+
+					if (_.isEmpty(workingProtocols)) {
+						results.anonymityLevel = null;
+						results.tunnel = { ok: false };
+					}
+
+					results.country = ProxyVerifier.lookupCountry(proxy);
+
+					cb(null, results);
+				});
 			});
 		});
 	},
