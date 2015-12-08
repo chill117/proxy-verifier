@@ -37,7 +37,9 @@ var ProxyVerifier = module.exports = {
 			proxy.protocols = [proxy.protocol];
 		}
 
-		ProxyVerifier.testProtocols(proxy, options, function(error, protocolsResult) {
+		var testProtocolsOptions = _.extend({}, options, { includeAll: true });
+
+		ProxyVerifier.testProtocols(proxy, testProtocolsOptions, function(error, protocolsResult) {
 
 			if (error) {
 				return cb(error);
@@ -52,18 +54,27 @@ var ProxyVerifier = module.exports = {
 			var asyncTests = {};
 
 			if (!_.isEmpty(workingProtocols)) {
-				asyncTests.anonymityLevel = 'testAnonymityLevel';
-				asyncTests.tunnel = 'testTunnel';
-			}
 
-			var tasks = _.object(_.map(_.keys(asyncTests), function(key) {
-				var fn = ProxyVerifier[asyncTests[key]];
-				return [key, function(next) {
-					fn(proxy, options, function(error, result) {
-						next(null, result || null);
+				var workingProtocol = _.first(workingProtocols);
+
+				asyncTests.anonymityLevel = function(next) {
+
+					var testAnonymityLevelOptions = _.extend({}, options, {
+						withProxy: [
+							protocolsResult[workingProtocol].data,
+							protocolsResult[workingProtocol].status,
+							protocolsResult[workingProtocol].headers
+						]
 					});
-				}];
-			}));
+
+					ProxyVerifier.testAnonymityLevel(proxy, testAnonymityLevelOptions, next);
+				};
+
+				asyncTests.tunnel = function(next) {
+
+					ProxyVerifier.testTunnel(proxy, options, next);
+				};
+			}
 
 			ProxyVerifier.loadCountryData(function(error) {
 
@@ -71,13 +82,15 @@ var ProxyVerifier = module.exports = {
 					return cb(error);
 				}
 
-				async.parallel(tasks, function(error, results) {
+				async.parallel(asyncTests, function(error, results) {
 
 					if (error) {
 						return cb(error);
 					}
 
-					results.protocols = protocolsResult;
+					results.protocols = _.object(_.map(_.keys(protocolsResult), function(protocol) {
+						return [protocol, _.omit(protocolsResult[protocol], 'data', 'status', 'headers')]
+					}));
 
 					if (_.isEmpty(workingProtocols)) {
 						results.anonymityLevel = null;
@@ -107,28 +120,60 @@ var ProxyVerifier = module.exports = {
 			proxy: _.clone(proxy)
 		});
 
-		ProxyVerifier.request('get', testUrl, requestOptions, function(error, data, status, headers) {
+		var results = [];
+		var succeeded = false;
+		var numAttempts = 0;
+		var maxAttempts = !_.isUndefined(options.maxAttempts) && options.maxAttempts || 1;
+		var waitTime = !_.isUndefined(options.waitTimeBetweenAttempts) && options.waitTimeBetweenAttempts || 0;
 
-			var result;
+		async.until(function() { return succeeded || numAttempts >= maxAttempts; }, function(nextAttempt) {
+
+			numAttempts++;
+
+			ProxyVerifier.request('get', testUrl, requestOptions, function(error, data, status, headers) {
+
+				var result;
+
+				if (error) {
+
+					result = {
+						ok: false,
+						error: {
+							message: error.message,
+							code: error.code
+						}
+					};
+
+				} else {
+
+					result = {
+						ok: true
+					};
+				}
+
+				if (options.includeAll) {
+
+					result.data = data;
+					result.status = status;
+					result.headers = headers;
+				}
+
+				if (result.ok) {
+					succeeded = true;
+				}
+
+				results.push(result);
+
+				setTimeout(nextAttempt, succeeded ? 0 : waitTime);
+			});
+
+		}, function(error) {
 
 			if (error) {
-
-				result = {
-					ok: false,
-					error: {
-						message: error.message,
-						code: error.code
-					}
-				};
-
-			} else {
-
-				result = {
-					ok: true
-				};
+				return cb(error);
 			}
 
-			cb(null, result);
+			cb(null, _.last(results));
 		});
 	},
 
@@ -172,7 +217,7 @@ var ProxyVerifier = module.exports = {
 			proxy:	_.clone(proxy)
 		});
 
-		ProxyVerifier.request('get', testUrl, requestOptions, function(error) {
+		ProxyVerifier.request('get', testUrl, requestOptions, function(error, data, status, headers) {
 
 			var result;
 
@@ -191,6 +236,13 @@ var ProxyVerifier = module.exports = {
 				result = {
 					ok: true
 				};
+			}
+
+			if (options.includeAll) {
+
+				result.data = data;
+				result.status = status;
+				result.headers = headers;
 			}
 
 			cb(null, result);
@@ -212,12 +264,22 @@ var ProxyVerifier = module.exports = {
 
 			withProxy: function(next) {
 
+				if (options.withProxy) {
+					// Already have sample data from proxy checking service.
+					return next(null, options.withProxy);
+				}
+
 				var requestOptions = _.extend({}, options, { proxy: proxy });
 
 				ProxyVerifier.request('get', testUrl, requestOptions, next);
 			},
 
 			withoutProxy: function(next) {
+
+				if (options.withoutProxy) {
+					// Already have sample data from proxy checking service.
+					return next(null, options.withoutProxy);
+				}
 
 				var requestOptions = options;
 
