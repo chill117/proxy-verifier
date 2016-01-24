@@ -411,40 +411,38 @@ var ProxyVerifier = module.exports = {
 		}
 
 		var req = request(requestOptions);
+		var done = _.once(cb);
 
 		req.on('response', function(res) {
 
 			res.setEncoding('utf8');
 
 			var responseData = '';
+			var status = res.statusCode;
+			var headers = res.headers;
 
 			res.on('data', function(chunk) {
-
 				responseData += chunk;
 			});
 
 			res.on('end', function() {
 
-				if (res.headers['content-type'] && res.headers['content-type'].indexOf('application/json') !== -1) {
+				res.destroy();
+
+				if (headers['content-type'] && headers['content-type'].indexOf('application/json') !== -1) {
 
 					try {
 						responseData = JSON.parse(responseData);
 					} catch (error) {
-						res.destroy();
-						return cb(error);
+						return done(error);
 					}
 				}
 
-				res.destroy();
-
-				cb(null, responseData, res.statusCode, res.headers);
+				done(null, responseData, status, headers);
 			});
 		});
 
-		req.on('error', function(error) {
-			cb(error);
-		});
-
+		req.on('error', done);
 		req.end();
 	},
 
