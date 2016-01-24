@@ -132,6 +132,12 @@ var ProxyVerifier = module.exports = {
 
 				var result;
 
+				if (!error && !ProxyVerifier.reachedProxyCheckService(data, status, headers)) {
+
+					error = new Error('Failed to reach proxy checking service.');
+					error.code = null;
+				}
+
 				if (error) {
 
 					result = {
@@ -221,6 +227,12 @@ var ProxyVerifier = module.exports = {
 
 			var result;
 
+			if (!error && !ProxyVerifier.reachedProxyCheckService(data, status, headers)) {
+
+				error = new Error('Failed to reach proxy checking service.');
+				error.code = null;
+			}
+
 			if (error) {
 
 				result = {
@@ -308,21 +320,10 @@ var ProxyVerifier = module.exports = {
 			};
 
 			if (
-				withoutProxy.status !== 200 ||
-				!_.isObject(withoutProxy.data) ||
-				!_.has(withoutProxy.data, 'ipAddress') ||
-				!_.has(withoutProxy.data, 'headers')
+				!ProxyVerifier.reachedProxyCheckService(withoutProxy.data, withoutProxy.status, withoutProxy.headers) ||
+				!ProxyVerifier.reachedProxyCheckService(withProxy.data, withProxy.status, withProxy.headers)
 			) {
 				return cb(new Error('Failed to reach proxy checking service.'));
-			}
-
-			if (
-				withProxy.status !== 200 ||
-				!_.isObject(withProxy.data) ||
-				!_.has(withProxy.data, 'ipAddress') ||
-				!_.has(withProxy.data, 'headers')
-			) {
-				return cb(new Error('Failed to reach proxy checking service via proxy.'));
 			}
 
 			var myIpAddress = withoutProxy.data.ipAddress;
@@ -464,6 +465,14 @@ var ProxyVerifier = module.exports = {
 			protocols: proxy.protocols || (proxy.protocol && [proxy.protocol]) || null,
 			auth: proxy.auth || null
 		};
+	},
+
+	reachedProxyCheckService: function(data, status, headers) {
+
+		return status === 200 &&
+				_.isObject(data) &&
+				_.has(data, 'ipAddress') &&
+				_.has(data, 'headers');
 	}
 };
 
