@@ -51,7 +51,7 @@ describe('testTunnel(proxy[, options], cb)', function() {
 		var proxyProtocol = 'http';
 
 		var proxy = {
-			ip_address: proxyServer[proxyProtocol].address().address,
+			ipAddress: proxyServer[proxyProtocol].address().address,
 			port: proxyServer[proxyProtocol].address().port,
 			protocols: [proxyProtocol]
 		};
@@ -85,7 +85,7 @@ describe('testTunnel(proxy[, options], cb)', function() {
 		var proxyProtocol = 'http';
 
 		var proxy = {
-			ip_address: proxyServer[proxyProtocol].address().address,
+			ipAddress: proxyServer[proxyProtocol].address().address,
 			port: proxyServer[proxyProtocol].address().port,
 			protocols: [proxyProtocol]
 		};

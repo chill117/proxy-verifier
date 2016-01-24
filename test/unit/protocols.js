@@ -30,7 +30,7 @@ describe('testProtocols(proxy[, options], cb)', function() {
 		};
 
 		var proxy = {
-			ip_address: '127.0.0.1',
+			ipAddress: '127.0.0.1',
 			port: 5050,
 			protocols: ['https', 'http', 'socks4']
 		};

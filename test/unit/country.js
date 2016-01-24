@@ -32,7 +32,7 @@ describe('lookupCountry(proxy)', function() {
 					try {
 						expect(country).to.equal(proxy.country);
 					} catch (error) {
-						throw new Error('Wrong country (' + country + ') for ' + proxy.ip_address);
+						throw new Error('Wrong country (' + country + ') for ' + proxy.ipAddress);
 					}
 				});
 			});

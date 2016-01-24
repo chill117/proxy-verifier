@@ -18,10 +18,10 @@ module.exports = {
 
 		app.get('/check', function(req, res, next) {
 
-			var ip_address = req.connection.remoteAddress;
+			var ipAddress = req.connection.remoteAddress;
 
 			res.status(200).json({
-				ip_address: ip_address,
+				ipAddress: ipAddress,
 				headers: req.headers
 			});
 		});

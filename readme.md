@@ -35,7 +35,7 @@ Usage:
 var ProxyVerifier = require('proxy-verifier');
 
 var proxy = {
-	ip_address: '127.0.0.1',
+	ipAddress: '127.0.0.1',
 	port: 8888,
 	protocol: 'http'
 };
@@ -78,7 +78,7 @@ Usage:
 var ProxyVerifier = require('proxy-verifier');
 
 var proxy = {
-	ip_address: '127.0.0.1',
+	ipAddress: '127.0.0.1',
 	port: 8080,
 	protocol: 'http'
 };
@@ -123,7 +123,7 @@ Usage:
 var ProxyVerifier = require('proxy-verifier');
 
 var proxy = {
-	ip_address: '127.0.0.1',
+	ipAddress: '127.0.0.1',
 	port: 8080,
 	protocols: ['http', 'https']
 };
@@ -182,7 +182,7 @@ Usage:
 var ProxyVerifier = require('proxy-verifier');
 
 var proxy = {
-	ip_address: '127.0.0.1',
+	ipAddress: '127.0.0.1',
 	port: 8080,
 	protocol: 'http'
 };
@@ -214,7 +214,7 @@ Usage:
 var ProxyVerifier = require('proxy-verifier');
 
 var proxy = {
-	ip_address: '127.0.0.1',
+	ipAddress: '127.0.0.1',
 	port: 8888,
 	protocol: 'http'
 };
@@ -261,7 +261,7 @@ Usage:
 var ProxyVerifier = require('proxy-verifier');
 
 var proxy = {
-	ip_address: '127.0.0.1',
+	ipAddress: '127.0.0.1',
 	port: 8080,
 	protocol: 'http'
 };
@@ -286,7 +286,7 @@ ProxyVerifier.loadCountryData(options, function(error) {
 
 		var country = ProxyVerifier.lookupCountry(proxy);
 
-		console.log('the proxy at ', proxy.ip_address, ' is geo-located in ', country);
+		console.log('the proxy at', proxy.ipAddress, 'is geo-located in', country);
 	}
 });
 ```
@@ -296,7 +296,7 @@ Usage with loading country data synchronously:
 var ProxyVerifier = require('proxy-verifier');
 
 var proxy = {
-	ip_address: '127.0.0.1',
+	ipAddress: '127.0.0.1',
 	port: 8080,
 	protocol: 'http'
 };
@@ -315,7 +315,7 @@ ProxyVerifier.loadCountryDataSync(options);
 
 var country = ProxyVerifier.lookupCountry(proxy);
 
-console.log('the proxy at ', proxy.ip_address, ' is geo-located in ', country);
+console.log('the proxy at', proxy.ipAddress, 'is geo-located in', country);
 ```
 
 
@@ -349,6 +349,10 @@ grunt test:code-style
 
 ## Changelog
 
+* v0.3.0:
+  * Performance improvements for `testAll()`.
+  * Changed `proxy.ip_address` to `proxy.ipAddress`
+  * Added `normalizeProxy(proxy)` method.
 * v0.2.0:
   * Renamed `all` to `testAll`. `all` method now prints a deprecated warning.
   * Renamed `protocol` to `testProtocol`. `protocol` method now prints a deprecated warning.

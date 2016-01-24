@@ -52,7 +52,7 @@ describe('testAll(proxy[, options], cb)', function() {
 			it(proxyProtocol, function(done) {
 
 				var proxy = {
-					ip_address: proxyServer[proxyProtocol].address().address,
+					ipAddress: proxyServer[proxyProtocol].address().address,
 					port: proxyServer[proxyProtocol].address().port,
 					protocols: [proxyProtocol]
 				};

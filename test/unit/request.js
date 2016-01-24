@@ -43,9 +43,9 @@ describe('request(method, url[, options], cb)', function() {
 				expect(error).to.equal(null);
 				expect(status).to.equal(200);
 				expect(data).to.be.an('object');
-				expect(_.has(data, 'ip_address')).to.equal(true);
+				expect(_.has(data, 'ipAddress')).to.equal(true);
 				expect(_.has(data, 'headers')).to.equal(true);
-				expect(data.ip_address).to.equal(localAddress);
+				expect(data.ipAddress).to.equal(localAddress);
 				expect(data.headers).to.be.an('object');
 				expect(data.headers.host).to.equal(host + ':' + port);
 
@@ -86,7 +86,7 @@ describe('request(method, url[, options], cb)', function() {
 						it(proxyProtocol + ' --> ' + targetProtocol + ' request should succeed', function(done) {
 
 							var proxy = {
-								ip_address: proxyServer[proxyProtocol].address().address,
+								ipAddress: proxyServer[proxyProtocol].address().address,
 								port: proxyServer[proxyProtocol].address().port,
 								protocols: [proxyProtocol]
 							};
@@ -111,9 +111,9 @@ describe('request(method, url[, options], cb)', function() {
 									expect(error).to.equal(null);
 									expect(status).to.equal(200);
 									expect(data).to.be.an('object');
-									expect(_.has(data, 'ip_address')).to.equal(true);
+									expect(_.has(data, 'ipAddress')).to.equal(true);
 									expect(_.has(data, 'headers')).to.equal(true);
-									expect(data.ip_address).to.equal(proxyServer.http.address().address);
+									expect(data.ipAddress).to.equal(proxyServer.http.address().address);
 									expect(data.headers).to.be.an('object');
 									expect(data.headers.host).to.equal(targetHost + ':' + targetPort);
 

@@ -77,7 +77,7 @@ describe('testAnonymityLevel(proxy[, options], cb)', function() {
 			var proxyServer = proxyServers.elite[0];
 
 			var proxy = {
-				ip_address: proxyServer.http.address().address,
+				ipAddress: proxyServer.http.address().address,
 				port: proxyServer.http.address().port,
 				protocols: ['http']
 			};
@@ -115,7 +115,7 @@ describe('testAnonymityLevel(proxy[, options], cb)', function() {
 					var proxyServer = proxyServers[anonymityLevel][index];
 
 					var proxy = {
-						ip_address: proxyServer.http.address().address,
+						ipAddress: proxyServer.http.address().address,
 						port: proxyServer.http.address().port,
 						protocols: ['http']
 					};

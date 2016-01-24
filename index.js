@@ -10,9 +10,9 @@ var url = require('url');
 
 var ProxyVerifier = module.exports = {
 
-	_protocolTestUrl: 'http://bitproxies.eu/api/v1/check',
-	_anonymityTestUrl: 'http://bitproxies.eu/api/v1/check',
-	_tunnelTestUrl: 'https://bitproxies.eu/api/v1/check',
+	_protocolTestUrl: 'http://bitproxies.eu/api/v2/check',
+	_anonymityTestUrl: 'http://bitproxies.eu/api/v2/check',
+	_tunnelTestUrl: 'https://bitproxies.eu/api/v2/check',
 
 	/*
 		Array of header keys for exact matching.
@@ -32,10 +32,7 @@ var ProxyVerifier = module.exports = {
 		}
 
 		options || (options = {});
-
-		if (!_.has(proxy, 'protocols') && _.has(proxy, 'protocol')) {
-			proxy.protocols = [proxy.protocol];
-		}
+		proxy = ProxyVerifier.normalizeProxy(proxy);
 
 		var testProtocolsOptions = _.extend({}, options, { includeAll: true });
 
@@ -113,6 +110,7 @@ var ProxyVerifier = module.exports = {
 		}
 
 		options || (options = {});
+		proxy = ProxyVerifier.normalizeProxy(proxy);
 
 		var testUrl = ProxyVerifier._tunnelTestUrl;
 
@@ -185,6 +183,7 @@ var ProxyVerifier = module.exports = {
 		}
 
 		options || (options = {});
+		proxy = ProxyVerifier.normalizeProxy(proxy);
 
 		if (!_.isArray(proxy.protocols)) {
 			throw new Error('Invalid "protocols" attribute: Array expected.');
@@ -210,6 +209,7 @@ var ProxyVerifier = module.exports = {
 		}
 
 		options || (options = {});
+		proxy = ProxyVerifier.normalizeProxy(proxy);
 
 		var testUrl = ProxyVerifier._protocolTestUrl;
 
@@ -257,6 +257,7 @@ var ProxyVerifier = module.exports = {
 		}
 
 		options || (options = {});
+		proxy = ProxyVerifier.normalizeProxy(proxy);
 
 		var testUrl = ProxyVerifier._anonymityTestUrl;
 
@@ -309,7 +310,7 @@ var ProxyVerifier = module.exports = {
 			if (
 				withoutProxy.status !== 200 ||
 				!_.isObject(withoutProxy.data) ||
-				!_.has(withoutProxy.data, 'ip_address') ||
+				!_.has(withoutProxy.data, 'ipAddress') ||
 				!_.has(withoutProxy.data, 'headers')
 			) {
 				return cb(new Error('Failed to reach proxy checking service.'));
@@ -318,16 +319,16 @@ var ProxyVerifier = module.exports = {
 			if (
 				withProxy.status !== 200 ||
 				!_.isObject(withProxy.data) ||
-				!_.has(withProxy.data, 'ip_address') ||
+				!_.has(withProxy.data, 'ipAddress') ||
 				!_.has(withProxy.data, 'headers')
 			) {
 				return cb(new Error('Failed to reach proxy checking service via proxy.'));
 			}
 
-			var myIpAddress = withoutProxy.data.ip_address;
+			var myIpAddress = withoutProxy.data.ipAddress;
 
 			// If the requesting host's IP address is in any of the headers, then "transparent".
-			if (withProxy.data.ip_address === myIpAddress || _.contains(_.values(withProxy.data.headers), myIpAddress)) {
+			if (withProxy.data.ipAddress === myIpAddress || _.contains(_.values(withProxy.data.headers), myIpAddress)) {
 				anonymityLevel = 'transparent';
 			} else {
 
@@ -356,13 +357,19 @@ var ProxyVerifier = module.exports = {
 
 	lookupCountry: function(proxy) {
 
-		return GeoIpNativeLite.lookup(proxy.ip_address);
+		proxy = ProxyVerifier.normalizeProxy(proxy);
+
+		return GeoIpNativeLite.lookup(proxy.ipAddress);
 	},
 
 	request: function(method, uri, options, cb) {
 
 		cb = _.last(arguments);
 		options || (options = {});
+
+		if (options.proxy) {
+			options.proxy = ProxyVerifier.normalizeProxy(options.proxy);
+		}
 
 		var requestOptions = _.extend({}, _.omit(options, 'proxy', 'data'), {
 			method: method.toUpperCase(),
@@ -373,10 +380,10 @@ var ProxyVerifier = module.exports = {
 		if (options.proxy) {
 
 			var proxy = options.proxy;
-			var proxyProtocol = proxy.protocol || _.first(proxy.protocols);
+			var proxyProtocol = _.first(proxy.protocols);
 			var proxyOptions = _.extend(
 				{},
-				url.parse(proxyProtocol + '://' + proxy.ip_address + ':' + proxy.port),
+				url.parse(proxyProtocol + '://' + proxy.ipAddress + ':' + proxy.port),
 				options.proxyOptions || {}
 			);
 
@@ -449,6 +456,16 @@ var ProxyVerifier = module.exports = {
 	loadCountryDataSync: function(options) {
 
 		return GeoIpNativeLite.loadDataSync(options);
+	},
+
+	normalizeProxy: function(proxy) {
+
+		return {
+			ipAddress: proxy.ipAddress || proxy.ip_address || null,
+			port: proxy.port || null,
+			protocols: proxy.protocols || (proxy.protocol && [proxy.protocol]) || null,
+			auth: proxy.auth || null
+		};
 	}
 };
 
