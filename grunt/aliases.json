@@ -1,8 +1,8 @@
 {
 	"default": ["test"],
 	"test": [
-		"test:code-style",
-		"test:unit"
+		"test:unit",
+		"test:code-style"
 	],
 	"test:code-style": [
 		"jscs"
