@@ -8,7 +8,6 @@ module.exports = {
 		'index.js'
 	],
 	options: {
-		config: '.jscsrc',
-		requireCurlyBraces: [ 'if', 'for', 'while' ]
+		configFile: '.eslintrc.js'
 	}
 };

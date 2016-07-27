@@ -5,7 +5,7 @@
 		"test:code-style"
 	],
 	"test:code-style": [
-		"jscs"
+		"eslint"
 	],
 	"test:unit": [
 		"mochaTest:unit"

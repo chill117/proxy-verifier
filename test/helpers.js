@@ -16,7 +16,7 @@ module.exports = {
 
 		var app = express();
 
-		app.get('/check', function(req, res, next) {
+		app.get('/check', function(req, res) {
 
 			var ipAddress = req.connection.remoteAddress;
 
