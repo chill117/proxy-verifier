@@ -1,1 +1,6 @@
-test
+grunt/
+test/
+.eslintrc.js
+.gitignore
+.npmignore
+gruntFile.js
