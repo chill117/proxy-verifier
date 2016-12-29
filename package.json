@@ -1,13 +1,12 @@
 {
   "name": "proxy-verifier",
   "version": "0.3.0",
-  "description": "Check that proxies are working, verify their anonymity level and country.",
+  "description": "Check that proxies are working, verify their anonymity level, check for other capabilities such as tunneling and available protocols.",
   "keywords": [
     "proxy",
     "proxies",
     "verify",
     "check",
-    "country",
     "anonymity"
   ],
   "main": "index.js",
@@ -30,7 +29,7 @@
   "dependencies": {
     "async": "2.1.2",
     "depd": "1.1.0",
-    "geoip-native-lite": "0.1.0",
+    "geoip-native-lite": "0.2.0",
     "proxy-agent": "2.0.0",
     "request": "2.75.0",
     "underscore": "1.8.3"

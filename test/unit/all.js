@@ -76,7 +76,6 @@ describe('testAll(proxy[, options], cb)', function() {
 						expect(result.protocols).to.be.an('object');
 						expect(result.protocols[proxyProtocol]).to.be.an('object');
 						expect(result.protocols[proxyProtocol].ok).to.equal(true);
-						expect(_.has(result, 'country')).to.equal(true);
 					} catch (error) {
 						return done(error);
 					}

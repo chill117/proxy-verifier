@@ -29,28 +29,20 @@ module.exports = {
 	],
 	ipv6: [
 		{
-			ipAddress: '2402:ff80::',
-			country: 'au'
+			ipAddress: '2001:5c0:1100:0:800::',
+			country: 'us'
 		},
 		{
-			ipAddress: '2404:f801:0008:1014:0010::',
-			country: 'sg'
+			ipAddress: '2001:5c8::',
+			country: 'us'
 		},
 		{
-			ipAddress: '2a03:59a0::',
-			country: 'se'
+			ipAddress: '2803:ff80::',
+			country: 'co'
 		},
 		{
-			ipAddress: '2a05:9640::',
-			country: 'gb'
-		},
-		{
-			ipAddress: '2001:2010:d01a:8000::',
-			country: 'dk'
-		},
-		{
-			ipAddress: '2c0f:feb0:100::',
-			country: 'mu'
+			ipAddress: '2804::',
+			country: 'br'
 		}
 	]
 };

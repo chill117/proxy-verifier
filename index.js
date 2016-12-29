@@ -2,7 +2,7 @@
 
 var _ = require('underscore');
 var async = require('async');
-var deprecate = require('depd')('ProxyVerifier')
+var deprecate = require('depd')('ProxyVerifier');
 var GeoIpNativeLite = require('geoip-native-lite');
 var ProxyAgent = require('proxy-agent');
 var request = require('request');
@@ -73,31 +73,22 @@ var ProxyVerifier = module.exports = {
 				};
 			}
 
-			ProxyVerifier.loadCountryData(function(error) {
+			async.parallel(asyncTests, function(error, results) {
 
 				if (error) {
 					return cb(error);
 				}
 
-				async.parallel(asyncTests, function(error, results) {
+				results.protocols = _.object(_.map(_.keys(protocolsResult), function(protocol) {
+					return [protocol, _.omit(protocolsResult[protocol], 'data', 'status', 'headers')]
+				}));
 
-					if (error) {
-						return cb(error);
-					}
+				if (_.isEmpty(workingProtocols)) {
+					results.anonymityLevel = null;
+					results.tunnel = { ok: false };
+				}
 
-					results.protocols = _.object(_.map(_.keys(protocolsResult), function(protocol) {
-						return [protocol, _.omit(protocolsResult[protocol], 'data', 'status', 'headers')]
-					}));
-
-					if (_.isEmpty(workingProtocols)) {
-						results.anonymityLevel = null;
-						results.tunnel = { ok: false };
-					}
-
-					results.country = ProxyVerifier.lookupCountry(proxy);
-
-					cb(null, results);
-				});
+				cb(null, results);
 			});
 		});
 	},
@@ -356,13 +347,6 @@ var ProxyVerifier = module.exports = {
 		});
 	},
 
-	lookupCountry: function(proxy) {
-
-		proxy = ProxyVerifier.normalizeProxy(proxy);
-
-		return GeoIpNativeLite.lookup(proxy.ipAddress);
-	},
-
 	request: function(method, uri, options, cb) {
 
 		cb = _.last(arguments);
@@ -447,16 +431,6 @@ var ProxyVerifier = module.exports = {
 		req.end();
 	},
 
-	loadCountryData: function(options, cb) {
-
-		GeoIpNativeLite.loadData(options, cb);
-	},
-
-	loadCountryDataSync: function(options) {
-
-		return GeoIpNativeLite.loadDataSync(options);
-	},
-
 	normalizeProxy: function(proxy) {
 
 		return {
@@ -477,27 +451,57 @@ var ProxyVerifier = module.exports = {
 };
 
 // For backwards compatibility, but with deprecated warnings.
+
 ProxyVerifier.all = deprecate.function(
 	ProxyVerifier.testAll,
 	'all() has been deprecated; use testAll() instead'
 );
+
 ProxyVerifier.protocol = deprecate.function(
 	ProxyVerifier.testProtocol,
 	'protocol() has been deprecated; use testProtocol() instead'
 );
+
 ProxyVerifier.protocols = deprecate.function(
 	ProxyVerifier.testProtocols,
 	'protocols() has been deprecated; use testProtocols() instead'
 );
+
 ProxyVerifier.anonymityLevel = deprecate.function(
 	ProxyVerifier.testAnonymityLevel,
 	'anonymityLevel() has been deprecated; use testAnonymityLevel() instead'
 );
+
 ProxyVerifier.tunnel = deprecate.function(
 	ProxyVerifier.testTunnel,
 	'tunnel() has been deprecated; use testTunnel() instead'
 );
+
+var lookupCountry = function(proxy) {
+	proxy = ProxyVerifier.normalizeProxy(proxy);
+	return GeoIpNativeLite.lookup(proxy.ipAddress);
+};
+
+ProxyVerifier.lookupCountry = deprecate.function(
+	lookupCountry,
+	'lookupCountry() has been deprecated and will be removed in a future release'
+);
+
 ProxyVerifier.country = deprecate.function(
-	ProxyVerifier.lookupCountry,
-	'country() has been deprecated; use lookupCountry() instead'
+	lookupCountry,
+	'country() has been deprecated and will be removed in a future release'
+);
+
+ProxyVerifier.loadCountryData = deprecate.function(
+	function(options, cb) {
+		GeoIpNativeLite.loadData(options, cb);
+	},
+	'loadCountryData() has been deprecated and will be removed in a future release'
+);
+
+ProxyVerifier.loadCountryDataSync = deprecate.function(
+	function(options) {
+		return GeoIpNativeLite.loadDataSync(options);
+	},
+	'loadCountryDataSync() has been deprecated and will be removed in a future release'
 );

@@ -1,6 +1,6 @@
 # proxy-verifier
 
-Check that proxies are working, verify their anonymity level and country.
+Check that proxies are working, verify their anonymity level, check for other capabilities such as tunneling and available protocols.
 
 [![Build Status](https://travis-ci.org/chill117/proxy-verifier.svg?branch=master)](https://travis-ci.org/chill117/proxy-verifier) [![Status of Dependencies](https://david-dm.org/chill117/proxy-verifier.svg)](https://david-dm.org/chill117/proxy-verifier)
 
@@ -21,14 +21,13 @@ This will install `proxy-verifier` and add it to your application's `package.jso
 * [testProtocols](#testprotocols)
 * [testAnonymityLevel](#testanonymitylevel)
 * [testTunnel](#testtunnel)
-* [lookupCountry](#lookupcountry)
 
 
 ### testAll
 
 `testAll(proxy[, options], cb)`
 
-Runs all test methods for the given proxy. The `options` argument is passed through to every test method (except `lookupCountry`).
+Runs all test methods for the given proxy. The `options` argument is passed through to every test method.
 
 Usage:
 ```js
@@ -61,8 +60,7 @@ Sample `result`:
 	},
 	tunnel: {
 		ok: true
-	},
-	country: 'cz'
+	}
 }
 ```
 
@@ -248,77 +246,6 @@ Sample `result` when the proxy does not support tunneling:
 ```
 
 
-### lookupCountry
-
-`lookupCountry(proxy)`
-
-Performs a geoip lookup on the proxy's IP address to determine in which country it is located. Uses [geoip-native-lite](https://github.com/chill117/geoip-native-lite) for super fast geoip lookups. Works with both IPv4 and IPv6.
-
-Returns [alpha-2 country code](https://en.wikipedia.org/wiki/ISO_3166-1) as string when successful. Returns `null` when the country could not be determined.
-
-Usage:
-```js
-var ProxyVerifier = require('proxy-verifier');
-
-var proxy = {
-	ipAddress: '127.0.0.1',
-	port: 8080,
-	protocol: 'http'
-};
-
-var options = {
-	// By default ipv6 country data is not loaded.
-	// To load it, uncomment the following line:
-	// ipv6: true
-};
-
-// Country data is not loaded automatically.
-// To perform country lookups you must load the country data first.
-ProxyVerifier.loadCountryData(options, function(error) {
-
-	if (error) {
-
-		// An error occurred while loading the country data.
-
-	} else {
-
-		// Can now perform country lookups.
-
-		var country = ProxyVerifier.lookupCountry(proxy);
-
-		console.log('the proxy at', proxy.ipAddress, 'is geo-located in', country);
-	}
-});
-```
-
-Usage with loading country data synchronously:
-```js
-var ProxyVerifier = require('proxy-verifier');
-
-var proxy = {
-	ipAddress: '127.0.0.1',
-	port: 8080,
-	protocol: 'http'
-};
-
-var options = {
-	// By default ipv6 country data is not loaded.
-	// To load it, uncomment the following line:
-	// ipv6: true
-};
-
-// Country data is not loaded automatically.
-// To perform country lookups you must load the country data first.
-ProxyVerifier.loadCountryDataSync(options);
-
-// Can now perform country lookups.
-
-var country = ProxyVerifier.lookupCountry(proxy);
-
-console.log('the proxy at', proxy.ipAddress, 'is geo-located in', country);
-```
-
-
 ## Contributing
 
 There are a number of ways you can contribute:
@@ -349,6 +276,8 @@ grunt test:code-style
 
 ## Changelog
 
+* TBD:
+  * Deprecated `lookupCountry()`, `loadCountryData()`, and `loadCountryDataSync()`. These will be removed in a future release.
 * v0.3.0:
   * Performance improvements for `testAll()`.
   * Changed `proxy.ip_address` to `proxy.ipAddress`
