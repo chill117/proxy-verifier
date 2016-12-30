@@ -1,6 +1,10 @@
 # proxy-verifier
 
-Check that proxies are working, verify their anonymity level, check for other capabilities such as tunneling and available protocols.
+Checks proxies for the following:
+* That they work as a proxy
+* Which protocol(s) they support (HTTP, HTTPS, SOCKS4, and/or SOCKS5)
+* Level of anonymity (transparent, anonymous, or elite)
+* Tunneling support (HTTPS over HTTP)
 
 [![Build Status](https://travis-ci.org/chill117/proxy-verifier.svg?branch=master)](https://travis-ci.org/chill117/proxy-verifier) [![Status of Dependencies](https://david-dm.org/chill117/proxy-verifier.svg)](https://david-dm.org/chill117/proxy-verifier)
 
@@ -277,7 +281,7 @@ grunt test:code-style
 ## Changelog
 
 * TBD:
-  * Deprecated `lookupCountry()`, `loadCountryData()`, and `loadCountryDataSync()`. These will be removed in a future release.
+  * Deprecated `lookupCountry()`, `loadCountryData()`, and `loadCountryDataSync()`. These will be removed in a future release. Use [geoip-native-lite](https://github.com/chill117/geoip-native-lite) if you need to check the geo-location for your proxies.
 * v0.3.0:
   * Performance improvements for `testAll()`.
   * Changed `proxy.ip_address` to `proxy.ipAddress`
