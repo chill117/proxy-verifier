@@ -14,6 +14,7 @@ describe('testTunnel(proxy[, options], cb)', function() {
 
 		appServer = helpers.createAppServer(3001, '127.0.0.1');
 
+		// The HTTPS app server listens on port 3002.
 		ProxyVerifier._tunnelTestUrl = 'https://127.0.0.1:3002/check';
 	});
 
@@ -68,9 +69,7 @@ describe('testTunnel(proxy[, options], cb)', function() {
 
 			try {
 				expect(error).to.equal(null);
-				expect(result).to.be.an('object');
-				expect(result.ok).to.equal(true);
-				expect(result.error).to.equal(undefined);
+				expect(result).to.deep.equal({ ok: true });
 			} catch (error) {
 				return done(error);
 			}
@@ -106,6 +105,8 @@ describe('testTunnel(proxy[, options], cb)', function() {
 				expect(result.ok).to.equal(false);
 				expect(result.error).to.not.equal(undefined);
 				expect(result.error).to.be.an('object');
+				expect(result.error.message).to.be.a('string');
+				expect(result.error.message).to.not.equal('');
 			} catch (error) {
 				return done(error);
 			}

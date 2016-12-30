@@ -67,35 +67,41 @@ module.exports = {
 		}).listen(port + 1, host);
 
 		if (options.tunnel) {
-
-			var handleConnect = _.bind(connectTunnel, undefined, host);
-
-			proxy.http.on('connect', handleConnect);
-			proxy.https.on('connect', handleConnect);
+			var onConnect = _.bind(setupTunnel, undefined, host);
+			proxy.http.on('connect', onConnect);
+			proxy.https.on('connect', onConnect);
+		} else {
+			proxy.http.on('connect', methodNotAllowed);
+			proxy.https.on('connect', methodNotAllowed);
 		}
 
 		return proxy;
 	}
 };
 
-function connectTunnel(host, req, cltSocket, head) {
+function methodNotAllowed(req, client, head) {
+	client.write('HTTP/' + req.httpVersion + ' 405 Method Not Allowed\r\n\r\n');
+	client.end();
+}
 
-	// Bind local address of proxy server.
-	var srvSocket = new net.Socket({
-		handle: net._createServerHandle(host)
-	});
+function setupTunnel(localAddress, req, client, head) {
 
-	// Connect to an origin server.
-	var srvUrl = url.parse('http://' + req.url);
+	var addr = req.url.split(':');
+	var port = addr[1] || 443;
+	var host = addr[0];
 
-	srvSocket.connect(srvUrl.port, srvUrl.hostname, function() {
-		cltSocket.write(
+	var server = net.connect({
+		host: host,
+		port: port,
+		localAddress: localAddress
+	}, function() {
+		client.write(
 			'HTTP/1.1 200 Connection Established\r\n' +
 			'Proxy-agent: Node.js-Proxy\r\n' +
 			'\r\n'
 		);
-		srvSocket.write(head);
-		srvSocket.pipe(cltSocket);
-		cltSocket.pipe(srvSocket);
+		server.write(head);
+		server.pipe(client);
+		client.pipe(server);
 	});
 }

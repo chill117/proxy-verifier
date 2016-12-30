@@ -113,7 +113,7 @@ describe('request(method, url[, options], cb)', function() {
 									expect(data).to.be.an('object');
 									expect(_.has(data, 'ipAddress')).to.equal(true);
 									expect(_.has(data, 'headers')).to.equal(true);
-									expect(data.ipAddress).to.equal(proxyServer.http.address().address);
+									expect(data.ipAddress).to.equal(proxy.ipAddress);
 									expect(data.headers).to.be.an('object');
 									expect(data.headers.host).to.equal(targetHost + ':' + targetPort);
 
