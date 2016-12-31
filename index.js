@@ -223,7 +223,7 @@ var ProxyVerifier = module.exports = {
 			if (!error && !ProxyVerifier.reachedProxyCheckService(data, status, headers)) {
 
 				if (status >= 300) {
-					error = new Error(data || httpStatusCodes[status]);
+					error = new Error(httpStatusCodes[status]);
 					error.code = 'HTTP_ERROR_' + status;
 				} else {
 					error = new Error('Failed to reach proxy checking service.');
