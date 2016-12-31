@@ -38,9 +38,18 @@ module.exports = {
 		options = _.defaults(options, { tunnel: true });
 		options.localAddress = host;
 
+		if (options.proxyAuth) {
+			options.auth = options.proxyAuth;
+		}
+
 		var proxy = httpProxy.createProxyServer(_.omit(options, 'tunnel'));
 
 		proxy.http = http.createServer(function(req, res) {
+
+			if (options.proxyAuth && !reqIsAuthenticated(req, options.proxyAuth)) {
+				res.writeHead(407);
+				return res.end();
+			}
 
 			var target = _.omit(url.parse(req.url), 'path');
 
@@ -54,6 +63,11 @@ module.exports = {
 			cert: ssl.cert,
 			key: ssl.key
 		}, function(req, res) {
+
+			if (options.proxyAuth && !reqIsAuthenticated(req, options.proxyAuth)) {
+				res.writeHead(407);
+				return res.end();
+			}
 
 			var target = _.omit(url.parse(req.url), 'path');
 
@@ -86,13 +100,11 @@ function methodNotAllowed(req, client, head) {
 
 function setupTunnel(localAddress, req, client, head) {
 
-	var addr = req.url.split(':');
-	var port = addr[1] || 443;
-	var host = addr[0];
+	var reqUri = url.parse(req.url.indexOf('://') !== -1 ? req.url : 'http://' + req.url);
 
 	var server = net.connect({
-		host: host,
-		port: port,
+		host: reqUri.hostname,
+		port: reqUri.port,
 		localAddress: localAddress
 	}, function() {
 		client.write(
@@ -104,4 +116,16 @@ function setupTunnel(localAddress, req, client, head) {
 		server.pipe(client);
 		client.pipe(server);
 	});
+}
+
+function reqIsAuthenticated(req, auth) {
+
+	var authHeader = req.headers['proxy-authorization'] || req.headers['authorization'] || null;
+
+	if (!authHeader) {
+		return false;
+	}
+
+	var parts = (new Buffer(authHeader.substr('Basic '.length), 'base64')).toString().split(':');
+	return parts[0] === auth.user && parts[1] === auth.pass;
 }

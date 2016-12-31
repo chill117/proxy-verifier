@@ -17,17 +17,6 @@ describe('testProtocol(proxy[, options], cb)', function() {
 		ProxyVerifier._protocolTestUrl = 'http://127.0.0.1:3001/check';
 	});
 
-	after(function() {
-
-		appServer.http.close();
-		appServer.https.close();
-	});
-
-	it('should be a function', function() {
-
-		expect(ProxyVerifier.testProtocol).to.be.a('function');
-	});
-
 	var proxyServer;
 
 	before(function() {
@@ -37,9 +26,20 @@ describe('testProtocol(proxy[, options], cb)', function() {
 
 	after(function() {
 
+		appServer.http.close();
+		appServer.https.close();
+	});
+
+	after(function() {
+
 		proxyServer.close();
 		proxyServer.http.close();
 		proxyServer.https.close();
+	});
+
+	it('should be a function', function() {
+
+		expect(ProxyVerifier.testProtocol).to.be.a('function');
 	});
 
 	var proxyProtocols = ['http', 'https'];
@@ -118,6 +118,102 @@ describe('testProtocol(proxy[, options], cb)', function() {
 
 					done();
 				});
+			});
+		});
+	});
+
+	describe('auth', function() {
+
+		var auth = {
+			user: 'test',
+			pass: 'somepassword'
+		};
+
+		var proxyServerWithAuth;
+
+		before(function() {
+
+			proxyServerWithAuth = helpers.createProxyServer(5051, '127.0.0.3', {
+				proxyAuth: auth
+			});
+		});
+
+		after(function() {
+
+			proxyServerWithAuth.close();
+			proxyServerWithAuth.http.close();
+			proxyServerWithAuth.https.close();
+		});
+
+		it('with correct authentication credentials', function(done) {
+
+			var proxyProtocol = 'http';
+
+			var proxy = {
+				ipAddress: proxyServerWithAuth[proxyProtocol].address().address,
+				port: proxyServerWithAuth[proxyProtocol].address().port,
+				protocols: [proxyProtocol]
+			};
+
+			var requestOptions = {
+				strictSSL: false,
+				proxyOptions: {
+					rejectUnauthorized: false
+				},
+				timeout: 100,
+				auth: auth
+			};
+
+			ProxyVerifier.testProtocol(proxy, requestOptions, function(error, result) {
+
+				try {
+					expect(error).to.equal(null);
+					expect(result).to.be.an('object');
+					expect(result.ok).to.equal(true);
+					expect(result.error).to.equal(undefined);
+				} catch (error) {
+					return done(error);
+				}
+
+				done();
+			});
+		});
+
+		it('with incorrect authentication credentials', function(done) {
+
+			var proxyProtocol = 'http';
+
+			var proxy = {
+				ipAddress: proxyServerWithAuth[proxyProtocol].address().address,
+				port: proxyServerWithAuth[proxyProtocol].address().port,
+				protocols: [proxyProtocol]
+			};
+
+			var requestOptions = {
+				strictSSL: false,
+				proxyOptions: {
+					rejectUnauthorized: false
+				},
+				timeout: 100,
+				auth: {
+					user: 'test',
+					pass: 'incorrect-password'
+				}
+			};
+
+			ProxyVerifier.testProtocol(proxy, requestOptions, function(error, result) {
+
+				try {
+					expect(error).to.equal(null);
+					expect(result).to.be.an('object');
+					expect(result.ok).to.equal(false);
+					expect(result.error).to.be.an('object');
+					expect(result.error.code).to.equal('HTTP_ERROR_407');
+				} catch (error) {
+					return done(error);
+				}
+
+				done();
 			});
 		});
 	});
