@@ -8,6 +8,8 @@ var ProxyAgent = require('proxy-agent');
 var request = require('request');
 var url = require('url');
 
+var httpStatusCodes = require('./httpStatusCodes');
+
 var ProxyVerifier = module.exports = {
 
 	_protocolTestUrl: 'http://bitproxies.eu/api/v2/check',
@@ -220,8 +222,13 @@ var ProxyVerifier = module.exports = {
 
 			if (!error && !ProxyVerifier.reachedProxyCheckService(data, status, headers)) {
 
-				error = new Error('Failed to reach proxy checking service.');
-				error.code = null;
+				if (status >= 300) {
+					error = new Error(data || httpStatusCodes[status]);
+					error.code = 'HTTP_ERROR_' + status;
+				} else {
+					error = new Error('Failed to reach proxy checking service.');
+					error.code = null;
+				}
 			}
 
 			if (error) {
