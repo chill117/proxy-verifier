@@ -11,22 +11,15 @@ describe('testAll(proxy[, options], cb)', function() {
 	var appServer;
 
 	before(function() {
-
 		appServer = helpers.createAppServer(3001, '127.0.0.1');
-
-		ProxyVerifier._protocolTestUrl = 'http://127.0.0.1:3001/check';
-		ProxyVerifier._anonymityTestUrl = 'http://127.0.0.1:3001/check';
-		ProxyVerifier._tunnelTestUrl = 'https://127.0.0.1:3002/check';
 	});
 
 	after(function() {
-
 		appServer.http.close();
 		appServer.https.close();
 	});
 
 	it('should be a function', function() {
-
 		expect(ProxyVerifier.testAll).to.be.a('function');
 	});
 
@@ -36,12 +29,10 @@ describe('testAll(proxy[, options], cb)', function() {
 		var proxyServer;
 
 		before(function() {
-
 			proxyServer = helpers.createProxyServer(5050, '127.0.0.2');
 		});
 
 		after(function() {
-
 			proxyServer.close();
 			proxyServer.http.close();
 			proxyServer.https.close();
@@ -57,15 +48,19 @@ describe('testAll(proxy[, options], cb)', function() {
 					protocols: [proxyProtocol]
 				};
 
-				var requestOptions = {
-					strictSSL: false,
-					proxyOptions: {
-						rejectUnauthorized: false
-					},
-					timeout: 100
+				var options = {
+					testUrl: 'https://127.0.0.1:3002/check',
+					ipAddressCheckUrl: 'http://127.0.0.1:3001/check',
+					requestOptions: {
+						strictSSL: false,
+						agentOptions: {
+							rejectUnauthorized: false
+						},
+						timeout: 100
+					}
 				};
 
-				ProxyVerifier.testAll(proxy, requestOptions, function(error, result) {
+				ProxyVerifier.testAll(proxy, options, function(error, result) {
 
 					try {
 						expect(error).to.equal(null);

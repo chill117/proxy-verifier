@@ -11,15 +11,10 @@ describe('testTunnel(proxy[, options], cb)', function() {
 	var appServer;
 
 	before(function() {
-
 		appServer = helpers.createAppServer(3001, '127.0.0.1');
-
-		// The HTTPS app server listens on port 3002.
-		ProxyVerifier._tunnelTestUrl = 'https://127.0.0.1:3002/check';
 	});
 
 	after(function() {
-
 		appServer.http.close();
 		appServer.https.close();
 	});
@@ -27,13 +22,11 @@ describe('testTunnel(proxy[, options], cb)', function() {
 	var proxyServers = {};
 
 	before(function() {
-
 		proxyServers.withTunneling = helpers.createProxyServer(5050, '127.0.0.2');
 		proxyServers.withoutTunneling = helpers.createProxyServer(5051, '127.0.0.3', { tunnel: false });
 	});
 
 	after(function() {
-
 		_.each(_.values(proxyServers), function(proxyServer) {
 			proxyServer.close();
 			proxyServer.http.close();
@@ -42,7 +35,6 @@ describe('testTunnel(proxy[, options], cb)', function() {
 	});
 
 	it('should be a function', function() {
-
 		expect(ProxyVerifier.testTunnel).to.be.a('function');
 	});
 
@@ -57,15 +49,19 @@ describe('testTunnel(proxy[, options], cb)', function() {
 			protocols: [proxyProtocol]
 		};
 
-		var requestOptions = {
-			strictSSL: false,
-			proxyOptions: {
-				rejectUnauthorized: false
-			},
-			timeout: 100
+		var options = {
+			// The HTTPS app server listens on port 3002.
+			testUrl: 'https://127.0.0.1:3002/check',
+			requestOptions: {
+				strictSSL: false,
+				agentOptions: {
+					rejectUnauthorized: false
+				},
+				timeout: 100
+			}
 		};
 
-		ProxyVerifier.testTunnel(proxy, requestOptions, function(error, result) {
+		ProxyVerifier.testTunnel(proxy, options, function(error, result) {
 
 			try {
 				expect(error).to.equal(null);
@@ -89,15 +85,19 @@ describe('testTunnel(proxy[, options], cb)', function() {
 			protocols: [proxyProtocol]
 		};
 
-		var requestOptions = {
-			strictSSL: false,
-			proxyOptions: {
-				rejectUnauthorized: false
-			},
-			timeout: 100
+		var options = {
+			// The HTTPS app server listens on port 3002.
+			testUrl: 'https://127.0.0.1:3002/check',
+			requestOptions: {
+				strictSSL: false,
+				agentOptions: {
+					rejectUnauthorized: false
+				},
+				timeout: 100
+			}
 		};
 
-		ProxyVerifier.testTunnel(proxy, requestOptions, function(error, result) {
+		ProxyVerifier.testTunnel(proxy, options, function(error, result) {
 
 			try {
 				expect(error).to.equal(null);

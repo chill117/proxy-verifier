@@ -98,7 +98,7 @@ describe('request(method, url[, options], cb)', function() {
 							var requestOptions = {
 								strictSSL: false,
 								proxy: proxy,
-								proxyOptions: {
+								agentOptions: {
 									rejectUnauthorized: false
 								},
 								timeout: 100

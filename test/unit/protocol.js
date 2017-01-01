@@ -11,34 +11,27 @@ describe('testProtocol(proxy[, options], cb)', function() {
 	var appServer;
 
 	before(function() {
-
 		appServer = helpers.createAppServer(3001, '127.0.0.1');
-
-		ProxyVerifier._protocolTestUrl = 'http://127.0.0.1:3001/check';
 	});
 
 	var proxyServer;
 
 	before(function() {
-
 		proxyServer = helpers.createProxyServer(5050, '127.0.0.2');
 	});
 
 	after(function() {
-
 		appServer.http.close();
 		appServer.https.close();
 	});
 
 	after(function() {
-
 		proxyServer.close();
 		proxyServer.http.close();
 		proxyServer.https.close();
 	});
 
 	it('should be a function', function() {
-
 		expect(ProxyVerifier.testProtocol).to.be.a('function');
 	});
 
@@ -56,15 +49,18 @@ describe('testProtocol(proxy[, options], cb)', function() {
 					protocols: [proxyProtocol]
 				};
 
-				var requestOptions = {
-					strictSSL: false,
-					proxyOptions: {
-						rejectUnauthorized: false
-					},
-					timeout: 100
+				var options = {
+					testUrl: 'http://127.0.0.1:3001/check',
+					requestOptions: {
+						strictSSL: false,
+						agentOptions: {
+							rejectUnauthorized: false
+						},
+						timeout: 100
+					}
 				};
 
-				ProxyVerifier.testProtocol(proxy, requestOptions, function(error, result) {
+				ProxyVerifier.testProtocol(proxy, options, function(error, result) {
 
 					try {
 						expect(error).to.equal(null);
@@ -97,15 +93,18 @@ describe('testProtocol(proxy[, options], cb)', function() {
 					protocols: [wrongProtocol]
 				};
 
-				var requestOptions = {
-					strictSSL: false,
-					proxyOptions: {
-						rejectUnauthorized: false
-					},
-					timeout: 100
+				var options = {
+					testUrl: 'http://127.0.0.1:3001/check',
+					requestOptions: {
+						strictSSL: false,
+						agentOptions: {
+							rejectUnauthorized: false
+						},
+						timeout: 100
+					}
 				};
 
-				ProxyVerifier.testProtocol(proxy, requestOptions, function(error, result) {
+				ProxyVerifier.testProtocol(proxy, options, function(error, result) {
 
 					try {
 						expect(error).to.equal(null);
@@ -155,16 +154,19 @@ describe('testProtocol(proxy[, options], cb)', function() {
 				protocols: [proxyProtocol]
 			};
 
-			var requestOptions = {
-				strictSSL: false,
-				proxyOptions: {
-					rejectUnauthorized: false
-				},
-				timeout: 100,
-				auth: auth
+			var options = {
+				testUrl: 'http://127.0.0.1:3001/check',
+				requestOptions: {
+					strictSSL: false,
+					agentOptions: {
+						rejectUnauthorized: false
+					},
+					timeout: 100,
+					auth: auth
+				}
 			};
 
-			ProxyVerifier.testProtocol(proxy, requestOptions, function(error, result) {
+			ProxyVerifier.testProtocol(proxy, options, function(error, result) {
 
 				try {
 					expect(error).to.equal(null);
@@ -189,19 +191,22 @@ describe('testProtocol(proxy[, options], cb)', function() {
 				protocols: [proxyProtocol]
 			};
 
-			var requestOptions = {
-				strictSSL: false,
-				proxyOptions: {
-					rejectUnauthorized: false
-				},
-				timeout: 100,
-				auth: {
-					user: 'test',
-					pass: 'incorrect-password'
+			var options = {
+				testUrl: 'http://127.0.0.1:3001/check',
+				requestOptions: {
+					strictSSL: false,
+					agentOptions: {
+						rejectUnauthorized: false
+					},
+					timeout: 100,
+					auth: {
+						user: 'test',
+						pass: 'incorrect-password'
+					}
 				}
 			};
 
-			ProxyVerifier.testProtocol(proxy, requestOptions, function(error, result) {
+			ProxyVerifier.testProtocol(proxy, options, function(error, result) {
 
 				try {
 					expect(error).to.equal(null);
