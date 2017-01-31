@@ -36,7 +36,7 @@
   },
   "devDependencies": {
     "chai": "3.5.0",
-    "express": "4.14.0",
+    "express": "4.14.1",
     "grunt": "1.0.1",
     "grunt-eslint": "19.0.0",
     "grunt-mocha-test": "0.13.2",
