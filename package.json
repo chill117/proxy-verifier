@@ -1,6 +1,6 @@
 {
   "name": "proxy-verifier",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Check that proxies are working, verify their anonymity level, check for other capabilities such as tunneling and available protocols.",
   "keywords": [
     "proxy",

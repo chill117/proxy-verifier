@@ -25,6 +25,7 @@ This will install `proxy-verifier` and add it to your application's `package.jso
 * [testProtocols](#testprotocols)
 * [testAnonymityLevel](#testanonymitylevel)
 * [testTunnel](#testtunnel)
+* [test](#test)
 
 
 ### testAll
@@ -250,6 +251,27 @@ Sample `result` when the proxy does not support tunneling:
 ```
 
 
+### Test
+
+Use this method to create your custom tests. Example usage:
+```js
+ProxyVerifier.test(proxy, {
+    testUrl: 'https://www.google.com/?q=test',
+    testFn: function(data, status, headers) {
+
+        // Check the response data, status, and headers.
+
+        // Throw an error if the test failed.
+        throw new Error('Test failed!');
+
+        // Do nothing if the test passed.
+    }
+}, function(error, results) {
+    // Do something with error or results.
+});
+```
+
+
 ## Contributing
 
 There are a number of ways you can contribute:
@@ -280,7 +302,7 @@ grunt test:code-style
 
 ## Changelog
 
-* TBD:
+* v0.4.0:
   * `test()` method to allow for custom tests.
   * Deprecated `lookupCountry()`, `loadCountryData()`, and `loadCountryDataSync()`. These will be removed in a future release. Use [geoip-native-lite](https://github.com/chill117/geoip-native-lite) if you need to check the geo-location for your proxies.
 * v0.3.0:
