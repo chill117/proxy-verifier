@@ -3,4 +3,5 @@ test/
 .eslintrc.js
 .gitignore
 .npmignore
+.travis.yml
 gruntFile.js
