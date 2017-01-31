@@ -12,18 +12,15 @@ describe('testAnonymityLevel(proxy[, options], cb)', function() {
 	var appServer;
 
 	before(function() {
-
 		appServer = helpers.createAppServer(3001, '127.0.0.1');
 	});
 
 	after(function() {
-
 		appServer.http.close();
 		appServer.https.close();
 	});
 
 	it('should be a function', function() {
-
 		expect(ProxyVerifier.testAnonymityLevel).to.be.a('function');
 	});
 
@@ -61,9 +58,7 @@ describe('testAnonymityLevel(proxy[, options], cb)', function() {
 		});
 
 		after(function() {
-
 			_.each(Array.prototype.concat.apply([], _.values(proxyServers)), function(proxyServer) {
-
 				proxyServer.close();
 				proxyServer.http.close();
 				proxyServer.https.close();
@@ -71,8 +66,6 @@ describe('testAnonymityLevel(proxy[, options], cb)', function() {
 		});
 
 		it('should return NULL when test URL is inaccessible', function(done) {
-
-			ProxyVerifier._anonymityTestUrl = 'http://127.0.0.1:3001/does-not-exist';
 
 			var proxyServer = proxyServers.elite[0];
 
@@ -82,15 +75,18 @@ describe('testAnonymityLevel(proxy[, options], cb)', function() {
 				protocols: ['http']
 			};
 
-			var requestOptions = {
-				strictSSL: false,
-				proxyOptions: {
-					rejectUnauthorized: false
-				},
-				timeout: 100
+			var options = {
+				testUrl: 'http://127.0.0.1:3001/does-not-exist',
+				requestOptions: {
+					strictSSL: false,
+					agentOptions: {
+						rejectUnauthorized: false
+					},
+					timeout: 100
+				}
 			};
 
-			ProxyVerifier.testAnonymityLevel(proxy, requestOptions, function(error, result) {
+			ProxyVerifier.testAnonymityLevel(proxy, options, function(error, result) {
 
 				try {
 					expect(error).to.not.equal(null);
@@ -108,8 +104,6 @@ describe('testAnonymityLevel(proxy[, options], cb)', function() {
 
 			it(anonymityLevel, function(done) {
 
-				ProxyVerifier._anonymityTestUrl = 'http://127.0.0.1:3001/check';
-
 				async.times(proxyServers[anonymityLevel].length, function(index, next) {
 
 					var proxyServer = proxyServers[anonymityLevel][index];
@@ -120,15 +114,19 @@ describe('testAnonymityLevel(proxy[, options], cb)', function() {
 						protocols: ['http']
 					};
 
-					var requestOptions = {
-						strictSSL: false,
-						proxyOptions: {
-							rejectUnauthorized: false
-						},
-						timeout: 100
+					var options = {
+						testUrl: 'http://127.0.0.1:3001/check',
+						ipAddressCheckUrl: 'http://127.0.0.1:3001/check',
+						requestOptions: {
+							strictSSL: false,
+							agentOptions: {
+								rejectUnauthorized: false
+							},
+							timeout: 100
+						}
 					};
 
-					ProxyVerifier.testAnonymityLevel(proxy, requestOptions, function(error, result) {
+					ProxyVerifier.testAnonymityLevel(proxy, options, function(error, result) {
 
 						try {
 							expect(error).to.equal(null);

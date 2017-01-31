@@ -12,8 +12,8 @@ var httpStatusCodes = require('./httpStatusCodes');
 
 var ProxyVerifier = module.exports = {
 
-	_protocolTestUrl: 'http://bitproxies.eu/api/v2/check',
-	_anonymityTestUrl: 'http://bitproxies.eu/api/v2/check',
+	_defaultTestUrl: 'http://bitproxies.eu/api/v2/check',
+	_ipAddressCheckUrl: 'https://bitproxies.eu/api/v2/check',
 	_tunnelTestUrl: 'https://bitproxies.eu/api/v2/check',
 
 	/*
@@ -34,6 +34,10 @@ var ProxyVerifier = module.exports = {
 		}
 
 		options || (options = {});
+
+		// Tells the request module to measure the elapsed time for each request.
+		options.time = true;
+
 		proxy = ProxyVerifier.normalizeProxy(proxy);
 
 		var testProtocolsOptions = _.extend({}, options, { includeAll: true });
@@ -54,23 +58,12 @@ var ProxyVerifier = module.exports = {
 
 			if (!_.isEmpty(workingProtocols)) {
 
-				var workingProtocol = _.first(workingProtocols);
-
 				asyncTests.anonymityLevel = function(next) {
-
-					var testAnonymityLevelOptions = _.extend({}, options, {
-						withProxy: [
-							protocolsResult[workingProtocol].data,
-							protocolsResult[workingProtocol].status,
-							protocolsResult[workingProtocol].headers
-						]
-					});
-
+					var testAnonymityLevelOptions = _.extend({}, options);
 					ProxyVerifier.testAnonymityLevel(proxy, testAnonymityLevelOptions, next);
 				};
 
 				asyncTests.tunnel = function(next) {
-
 					ProxyVerifier.testTunnel(proxy, options, next);
 				};
 			}
@@ -92,85 +85,6 @@ var ProxyVerifier = module.exports = {
 
 				cb(null, results);
 			});
-		});
-	},
-
-	testTunnel: function(proxy, options, cb) {
-
-		if (_.isUndefined(cb)) {
-			cb = options;
-			options = null
-		}
-
-		options || (options = {});
-		proxy = ProxyVerifier.normalizeProxy(proxy);
-
-		var testUrl = ProxyVerifier._tunnelTestUrl;
-
-		var requestOptions = _.extend({}, options, {
-			proxy: _.clone(proxy)
-		});
-
-		var results = [];
-		var succeeded = false;
-		var numAttempts = 0;
-		var maxAttempts = !_.isUndefined(options.maxAttempts) && options.maxAttempts || 1;
-		var waitTime = !_.isUndefined(options.waitTimeBetweenAttempts) && options.waitTimeBetweenAttempts || 0;
-
-		async.until(function() { return succeeded || numAttempts >= maxAttempts; }, function(nextAttempt) {
-
-			numAttempts++;
-
-			ProxyVerifier.request('get', testUrl, requestOptions, function(error, data, status, headers) {
-
-				var result;
-
-				if (!error && !ProxyVerifier.reachedProxyCheckService(data, status, headers)) {
-
-					error = new Error('Failed to reach proxy checking service.');
-					error.code = null;
-				}
-
-				if (error) {
-
-					result = {
-						ok: false,
-						error: {
-							message: error.message,
-							code: error.code
-						}
-					};
-
-				} else {
-
-					result = {
-						ok: true
-					};
-				}
-
-				if (options.includeAll) {
-
-					result.data = data;
-					result.status = status;
-					result.headers = headers;
-				}
-
-				if (result.ok) {
-					succeeded = true;
-				}
-
-				results.push(result);
-
-				setTimeout(nextAttempt, succeeded ? 0 : waitTime);
-			});
-
-		}, function(error) {
-
-			if (error) {
-				return cb(error);
-			}
-
-			cb(null, _.last(results));
 		});
 	},
 
@@ -202,61 +116,7 @@ var ProxyVerifier = module.exports = {
 
 	testProtocol: function(proxy, options, cb) {
 
-		if (_.isUndefined(cb)) {
-			cb = options;
-			options = null
-		}
-
-		options || (options = {});
-		proxy = ProxyVerifier.normalizeProxy(proxy);
-
-		var testUrl = ProxyVerifier._protocolTestUrl;
-
-		var requestOptions = _.extend({}, options, {
-			proxy:	_.clone(proxy)
-		});
-
-		ProxyVerifier.request('get', testUrl, requestOptions, function(error, data, status, headers) {
-
-			var result;
-
-			if (!error && !ProxyVerifier.reachedProxyCheckService(data, status, headers)) {
-
-				if (status >= 300) {
-					error = new Error(httpStatusCodes[status]);
-					error.code = 'HTTP_ERROR_' + status;
-				} else {
-					error = new Error('Failed to reach proxy checking service.');
-					error.code = null;
-				}
-			}
-
-			if (error) {
-
-				result = {
-					ok: false,
-					error: {
-						message: error.message,
-						code: error.code
-					}
-				};
-
-			} else {
-
-				result = {
-					ok: true
-				};
-			}
-
-			if (options.includeAll) {
-
-				result.data = data;
-				result.status = status;
-				result.headers = headers;
-			}
-
-			cb(null, result);
-		});
+		ProxyVerifier.test(proxy, options, cb);
 	},
 
 	testAnonymityLevel: function(proxy, options, cb) {
@@ -266,35 +126,42 @@ var ProxyVerifier = module.exports = {
 			options = null
 		}
 
-		options || (options = {});
-		proxy = ProxyVerifier.normalizeProxy(proxy);
-
-		var testUrl = ProxyVerifier._anonymityTestUrl;
+		options = (options || {});
 
 		async.parallel({
 
-			withProxy: function(next) {
+			myIpAddress: function(next) {
 
-				if (options.withProxy) {
-					// Already have sample data from proxy checking service.
-					return next(null, options.withProxy);
+				if (options.myIpAddress) {
+					// Already have our IP address for comparison.
+					return next(null, options.myIpAddress);
 				}
 
-				var requestOptions = _.extend({}, options, { proxy: proxy });
-
-				ProxyVerifier.request('get', testUrl, requestOptions, next);
+				ProxyVerifier.getMyIpAddress(options, next);
 			},
 
-			withoutProxy: function(next) {
+			test: function(next) {
 
-				if (options.withoutProxy) {
-					// Already have sample data from proxy checking service.
-					return next(null, options.withoutProxy);
-				}
+				var testOptions = _.extend({}, options, { includeAll: true });
 
-				var requestOptions = options;
+				ProxyVerifier.test(proxy, testOptions, function(error, result) {
 
-				ProxyVerifier.request('get', testUrl, requestOptions, next);
+					if (error || result.error) {
+
+						if (!error) {
+
+							error = new Error(result.error.message);
+
+							if (result.error.code) {
+								error.code = result.error.code;
+							}
+						}
+
+						return next(error);
+					}
+
+					next(null, result);
+				});
 			}
 
 		}, function(error, results) {
@@ -304,27 +171,8 @@ var ProxyVerifier = module.exports = {
 			}
 
 			var anonymityLevel;
-
-			var withProxy = {
-				data: results.withProxy[0],
-				status: results.withProxy[1],
-				headers: results.withProxy[2]
-			};
-
-			var withoutProxy = {
-				data: results.withoutProxy[0],
-				status: results.withoutProxy[1],
-				headers: results.withoutProxy[2]
-			};
-
-			if (
-				!ProxyVerifier.reachedProxyCheckService(withoutProxy.data, withoutProxy.status, withoutProxy.headers) ||
-				!ProxyVerifier.reachedProxyCheckService(withProxy.data, withProxy.status, withProxy.headers)
-			) {
-				return cb(new Error('Failed to reach proxy checking service.'));
-			}
-
-			var myIpAddress = withoutProxy.data.ipAddress;
+			var myIpAddress = results.myIpAddress;
+			var withProxy = results.test;
 
 			// If the requesting host's IP address is in any of the headers, then "transparent".
 			if (withProxy.data.ipAddress === myIpAddress || _.contains(_.values(withProxy.data.headers), myIpAddress)) {
@@ -354,6 +202,140 @@ var ProxyVerifier = module.exports = {
 		});
 	},
 
+	getMyIpAddress: function(options, cb) {
+
+		if (_.isUndefined(cb)) {
+			cb = options;
+			options = null
+		}
+
+		options = _.defaults(options || {}, {
+			ipAddressCheckUrl: ProxyVerifier._ipAddressCheckUrl,
+			ipAddressCheckFn: ProxyVerifier._getIpAddressFromCheckProxyServiceResponse
+		});
+
+		ProxyVerifier.request('get', options.ipAddressCheckUrl, options, function(error, data, status, headers) {
+
+			if (error) {
+				return cb(error);
+			}
+
+			try {
+				var ipAddress = options.ipAddressCheckFn(data, status, headers);	
+			} catch (error) {
+				return cb(error);
+			}
+
+			cb(null, ipAddress);
+		});
+	},
+
+	testTunnel: function(proxy, options, cb) {
+
+		if (_.isUndefined(cb)) {
+			cb = options;
+			options = null
+		}
+
+		options = _.defaults(options || {}, {
+			testUrl: ProxyVerifier._tunnelTestUrl,
+			maxAttempts: 5,
+			waitTimeBetweenAttempts: 0
+		});
+
+		ProxyVerifier.test(proxy, options, cb);
+	},
+
+	test: function(proxy, options, cb) {
+
+		if (_.isUndefined(cb)) {
+			cb = options;
+			options = null
+		}
+
+		if (!_.isObject(proxy)) {
+			throw new Error('Expected "proxy" to be an object.');
+		}
+
+		if (!_.isObject(options)) {
+			throw new Error('Expected "options" to be an object.');
+		}
+
+		if (!_.isObject(cb)) {
+			throw new Error('Expected "cb" to be a function.');
+		}
+
+		options = _.defaults(options || {}, {
+			testUrl: ProxyVerifier._defaultTestUrl,
+			testFn: ProxyVerifier._checkProxyServiceResponse,
+			maxAttempts: 1,
+			waitTimeBetweenAttempts: 0
+		});
+
+		var requestOptions = _.extend({}, options.requestOptions || {}, {
+			proxy: ProxyVerifier.normalizeProxy(proxy)
+		});
+
+		var result;
+		var numAttempts = 0;
+
+		async.until(function() {
+
+			// Retry the test until successful or have reached the maximum number of attempts.
+			return (result && result.ok === true) || numAttempts >= options.maxAttempts;
+
+		}, function(nextAttempt) {
+
+			numAttempts++;
+
+			ProxyVerifier.request('get', options.testUrl, requestOptions, function(error, data, status, headers) {
+
+				if (!error) {
+
+					try {
+						options.testFn(data, status, headers);
+					} catch (testError) {
+						error = testError;
+					}
+				}
+
+				if (error) {
+
+					result = {
+						ok: false,
+						error: {
+							message: error.message,
+							code: error.code
+						}
+					};
+
+				} else {
+
+					result = {
+						ok: true
+					};
+				}
+
+				if (options.includeAll) {
+					result.data = data;
+					result.status = status;
+					result.headers = headers;
+				}
+
+				// Don't wait in the case of success.
+				setTimeout(nextAttempt, result.ok === true ? 0 : options.waitTimeBetweenAttempts);
+			});
+
+		}, function(error) {
+
+			if (error) {
+				return cb(error);
+			}
+
+			cb(null, result);
+		});
+	},
+
 	request: function(method, uri, options, cb) {
 
 		cb = _.last(arguments);
@@ -373,13 +355,13 @@ var ProxyVerifier = module.exports = {
 
 			var proxy = options.proxy;
 			var proxyProtocol = _.first(proxy.protocols);
-			var proxyOptions = _.extend(
+			var agentOptions = _.extend(
 				{},
 				url.parse(proxyProtocol + '://' + proxy.ipAddress + ':' + proxy.port),
-				options.proxyOptions || {}
+				options.agentOptions || {}
 			);
 
-			requestOptions.agent = new ProxyAgent(proxyOptions);
+			requestOptions.agent = new ProxyAgent(agentOptions);
 
 			if (proxy.auth) {
 				requestOptions.headers['Proxy-Authorization'] = proxy.auth;
@@ -436,9 +418,13 @@ var ProxyVerifier = module.exports = {
 
 		req.on('error', done);
 		req.end();
+
+		return req;
 	},
 
 	normalizeProxy: function(proxy) {
+
+		proxy = ProxyVerifier._deepClone(proxy);
 
 		return {
 			ipAddress: proxy.ipAddress || proxy.ip_address || null,
@@ -448,12 +434,32 @@ var ProxyVerifier = module.exports = {
 		};
 	},
 
-	reachedProxyCheckService: function(data, status, headers) {
+	_deepClone: function(object) {
 
-		return status === 200 &&
-				_.isObject(data) &&
-				_.has(data, 'ipAddress') &&
-				_.has(data, 'headers');
+		return JSON.parse(JSON.stringify(object));
+	},
+
+	_getIpAddressFromCheckProxyServiceResponse: function(data, status, headers) {
+
+		ProxyVerifier._checkProxyServiceResponse(data, status, headers);
+		return data.ipAddress;
+	},
+
+	_checkProxyServiceResponse: function(data, status, headers) {
+
+		var error;
+
+		if (status >= 300) {
+			error = new Error(httpStatusCodes[status] || '');
+			error.code = 'HTTP_ERROR_' + status;
+		} else if (status !== 200 && !_.isObject(data) && !_.has(data, 'ipAddress') && !_.has(data, 'headers')) {
+			error = new Error('Failed to reach proxy check service.');
+			error.code = 'FAILED_TO_REACH_PROXY_SERVICE';
+		}
+
+		if (!_.isUndefined(error)) {
+			throw error;
+		}
 	}
 };
 

@@ -8,7 +8,6 @@ var ProxyVerifier = require('../../');
 describe('normalizeProxy(proxy)', function() {
 
 	it('should be a function', function() {
-
 		expect(ProxyVerifier.normalizeProxy).to.be.a('function');
 	});
 
