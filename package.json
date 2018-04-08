@@ -35,6 +35,7 @@
     "underscore": "1.8.3"
   },
   "devDependencies": {
+    "@types/request": "^2.47.0",
     "chai": "3.5.0",
     "express": "4.14.1",
     "grunt": "1.0.1",
@@ -44,5 +45,6 @@
     "load-grunt-config": "0.19.2",
     "mocha": "3.2.0",
     "time-grunt": "1.4.0"
-  }
+  },
+  "types": "proxy-verifier.d.ts"
 }
