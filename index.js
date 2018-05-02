@@ -221,7 +221,7 @@ var ProxyVerifier = module.exports = {
 			}
 
 			try {
-				var ipAddress = options.ipAddressCheckFn(data, status, headers);	
+				var ipAddress = options.ipAddressCheckFn(data, status, headers);
 			} catch (error) {
 				return cb(error);
 			}
@@ -417,6 +417,7 @@ var ProxyVerifier = module.exports = {
 		});
 
 		req.on('error', done);
+		req.on('timeout', req.abort);
 		req.end();
 
 		return req;
