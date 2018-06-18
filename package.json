@@ -31,7 +31,7 @@
     "depd": "1.1.0",
     "geoip-native-lite": "0.2.0",
     "proxy-agent": "2.0.0",
-    "request": "2.79.0",
+    "request": "2.82.0",
     "underscore": "1.8.3"
   },
   "devDependencies": {
