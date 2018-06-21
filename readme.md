@@ -302,6 +302,8 @@ grunt test:code-style
 
 ## Changelog
 
+* v0.4.1:
+  * Upgraded dependencies
 * v0.4.0:
   * `test()` method to allow for custom tests.
   * Deprecated `lookupCountry()`, `loadCountryData()`, and `loadCountryDataSync()`. These will be removed in a future release. Use [geoip-native-lite](https://github.com/chill117/geoip-native-lite) if you need to check the geo-location for your proxies.

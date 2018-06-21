@@ -1,6 +1,6 @@
 {
   "name": "proxy-verifier",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "Check that proxies are working, verify their anonymity level, check for other capabilities such as tunneling and available protocols.",
   "keywords": [
     "proxy",
@@ -27,22 +27,22 @@
     "url": "https://github.com/chill117/proxy-verifier/issues"
   },
   "dependencies": {
-    "async": "2.1.4",
-    "depd": "1.1.0",
+    "async": "2.6.1",
+    "depd": "1.1.2",
     "geoip-native-lite": "0.2.0",
-    "proxy-agent": "2.0.0",
-    "request": "2.79.0",
-    "underscore": "1.8.3"
+    "proxy-agent": "3.0.0",
+    "request": "2.87.0",
+    "underscore": "1.9.1"
   },
   "devDependencies": {
-    "chai": "3.5.0",
-    "express": "4.14.1",
-    "grunt": "1.0.1",
-    "grunt-eslint": "19.0.0",
-    "grunt-mocha-test": "0.13.2",
-    "http-proxy": "1.16.2",
+    "chai": "4.1.2",
+    "express": "4.16.3",
+    "grunt": "1.0.3",
+    "grunt-eslint": "20.2.0",
+    "grunt-mocha-test": "0.13.3",
+    "http-proxy": "1.17.0",
     "load-grunt-config": "0.19.2",
-    "mocha": "3.2.0",
+    "mocha": "5.2.0",
     "time-grunt": "1.4.0"
   }
 }
