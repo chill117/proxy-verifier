@@ -126,6 +126,6 @@ function reqIsAuthenticated(req, auth) {
 		return false;
 	}
 
-	var parts = (new Buffer(authHeader.substr('Basic '.length), 'base64')).toString().split(':');
+	var parts = Buffer.from(authHeader.substr('Basic '.length), 'base64').toString().split(':');
 	return parts[0] === auth.user && parts[1] === auth.pass;
 }
