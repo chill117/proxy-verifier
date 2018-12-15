@@ -11,7 +11,11 @@
   ],
   "main": "index.js",
   "scripts": {
-    "test": "grunt test"
+    "lint": "eslint --config .eslintrc.js *.js test/**/*.js",
+    "prepublish": "npm run test # runs before `npm publish`",
+    "pretest": "npm run lint # runs before `npm test`",
+    "test": "npm run test:unit",
+    "test:unit": "mocha test/unit/ --recursive --reporter spec --ui bdd"
   },
   "repository": {
     "type": "git",
@@ -37,12 +41,6 @@
   "devDependencies": {
     "chai": "4.1.2",
     "express": "4.16.3",
-    "grunt": "1.0.3",
-    "grunt-eslint": "20.2.0",
-    "grunt-mocha-test": "0.13.3",
-    "http-proxy": "1.17.0",
-    "load-grunt-config": "0.19.2",
-    "mocha": "5.2.0",
-    "time-grunt": "1.4.0"
+    "http-proxy": "1.17.0"
   }
 }
