@@ -21,10 +21,6 @@ module.exports = {
 		{
 			ipAddress: '201.144.9.102',
 			country: 'mx'
-		},
-		{
-			ipAddress: '81.90.177.52',
-			country: 'si'
 		}
 	],
 	ipv6: [
