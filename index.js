@@ -279,10 +279,11 @@ var ProxyVerifier = module.exports = {
 		var result;
 		var numAttempts = 0;
 
-		async.until(function() {
+		async.until(function(next) {
 
 			// Retry the test until successful or have reached the maximum number of attempts.
-			return (result && result.ok === true) || numAttempts >= options.maxAttempts;
+			var doContinue = (result && result.ok === true) || numAttempts >= options.maxAttempts;
+			next(null, doContinue);
 
 		}, function(nextAttempt) {
 
