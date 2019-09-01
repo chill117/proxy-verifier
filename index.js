@@ -3,7 +3,9 @@
 var _ = require('underscore');
 var async = require('async');
 var deprecate = require('depd')('ProxyVerifier');
+var express = require('express');
 var GeoIpNativeLite = require('geoip-native-lite');
+var ngrok = require('ngrok');
 var ProxyAgent = require('proxy-agent');
 var request = require('request');
 var url = require('url');
@@ -12,9 +14,9 @@ var httpStatusCodes = require('./httpStatusCodes');
 
 var ProxyVerifier = module.exports = {
 
-	_defaultTestUrl: 'http://bitproxies.eu/api/v2/check',
-	_ipAddressCheckUrl: 'https://bitproxies.eu/api/v2/check',
-	_tunnelTestUrl: 'https://bitproxies.eu/api/v2/check',
+	// _defaultTestUrl: 'http://bitproxies.eu/api/v2/check',
+	// _ipAddressCheckUrl: 'https://bitproxies.eu/api/v2/check',
+	// _tunnelTestUrl: 'https://bitproxies.eu/api/v2/check',
 
 	/*
 		Array of header keys for exact matching.
@@ -25,6 +27,24 @@ var ProxyVerifier = module.exports = {
 		Array of header keywords for loose matching.
 	*/
 	_proxyRelatedHeaderKeywords: ['proxy'],
+
+	queues: {},
+
+	prepareQueues: function() {
+
+		this.queues.onProxyCheckServiceReady = async.queue(function(task, next) {
+			try {
+				task.fn();
+			} catch (error) {
+				console.log(error);
+			}
+			next();
+		});
+
+		// Pause all queues.
+		// This prevents execution of queued items until queue.resume() is called.
+		_.invoke(this.queues, 'pause');
+	},
 
 	testAll: function(proxy, options, cb) {
 
@@ -121,6 +141,8 @@ var ProxyVerifier = module.exports = {
 
 	testAnonymityLevel: function(proxy, options, cb) {
 
+		console.log('testAnonymityLevel');
+
 		if (_.isUndefined(cb)) {
 			cb = options;
 			options = null
@@ -213,6 +235,8 @@ var ProxyVerifier = module.exports = {
 			ipAddressCheckUrl: ProxyVerifier._ipAddressCheckUrl,
 			ipAddressCheckFn: ProxyVerifier._getIpAddressFromCheckProxyServiceResponse
 		});
+
+		console.log('getMyIpAddress', options);
 
 		ProxyVerifier.request('get', options.ipAddressCheckUrl, options, function(error, data, status, headers) {
 
@@ -423,6 +447,112 @@ var ProxyVerifier = module.exports = {
 		return req;
 	},
 
+	onProxyCheckServiceReady: function(fn) {
+
+		this.queues.onProxyCheckServiceReady.push({ fn: fn });
+	},
+
+	proxyCheckServiceIsReady: function() {
+
+		return !!this._proxyCheckService && !!this._secureTunnelUrl;
+	},
+
+	prepareProxyCheckService: function(cb) {
+
+		this.onProxyCheckServiceReady(cb);
+		if (!this.proxyCheckServiceIsReady() && !this._preparingProxyCheckService) {
+			this._preparingProxyCheckService = true;
+			this.createProxyCheckServer(3000, function(error, app) {
+				if (error) return cb(error);
+				this._proxyCheckService = app;
+				this.createSecureTunnel(3000, function(error, secureTunnelUrl) {
+					if (error) return cb(error);
+					this._secureTunnelUrl = secureTunnelUrl;
+					this._defaultTestUrl = secureTunnelUrl + '/check';
+					this._ipAddressCheckUrl = secureTunnelUrl + '/check';
+					this._tunnelTestUrl = secureTunnelUrl + '/check';
+					console.log(this._ipAddressCheckUrl);
+					this.queues.onProxyCheckServiceReady.resume();
+					this._preparingProxyCheckService = false;
+					cb();
+				}.bind(this));
+			}.bind(this));
+		}
+	},
+
+	createSecureTunnel: function(port, cb) {
+
+		ngrok.connect({
+			proto: 'http',
+			addr: port,
+			region: 'eu',
+		}).then(function(secureTunnelUrl) {
+			cb(null, secureTunnelUrl);
+		}).catch(cb);
+	},
+
+	createProxyCheckServer: function(port, cb) {
+
+		var app = express();
+
+		app.get('/check', function(req, res) {
+
+			console.log('GET /check')
+
+			var ipAddress = req.connection.remoteAddress;
+
+			res.status(200).json({
+				ipAddress: ipAddress,
+				headers: req.headers
+			});
+		});
+
+		app.server = app.listen(port, function(error) {
+
+			if (error) {
+				return cb(error);
+			}
+
+			cb(null, app);
+		});
+	},
+
+	close: function(cb) {
+
+		this.killQueues();
+		this.stopProxyCheckService(cb);
+	},
+
+	killQueues: function() {
+
+		_.invoke(this.queues, 'kill');
+	},
+
+	stopProxyCheckService: function(cb) {
+
+		async.parallel([
+			this.stopSecureTunnel.bind(this),
+			this.stopProxyCheckServer.bind(this),
+		], cb);
+	},
+
+	stopSecureTunnel: function(cb) {
+
+		ngrok.kill().then(function() {
+			cb();
+		}).catch(cb);
+	},
+
+	stopProxyCheckServer: function(cb) {
+
+		if (this.proxyCheckServiceIsReady()) {
+			var app = this._proxyCheckService;
+			app.server.close(function() {
+				cb();
+			});
+		}
+	},
+
 	normalizeProxy: function(proxy) {
 
 		proxy = ProxyVerifier._deepClone(proxy);
@@ -461,7 +591,7 @@ var ProxyVerifier = module.exports = {
 		if (!_.isUndefined(error)) {
 			throw error;
 		}
-	}
+	},
 };
 
 // For backwards compatibility, but with deprecated warnings.
@@ -519,3 +649,30 @@ ProxyVerifier.loadCountryDataSync = deprecate.function(
 	},
 	'loadCountryDataSync() has been deprecated and will be removed in a future release'
 );
+
+process.on('SIGINT', function() {
+	// NodeJS process interrupted - kill ngrok process.
+	ngrok.kill();
+});
+
+ProxyVerifier.prepareQueues();
+
+_.each([
+	'getMyIpAddress',
+	'testAll',
+	'testAnonymityLevel',
+	'testProtocol',
+	'testProtocols',
+	'testTunnel',
+	'test',
+], function(method) {
+	var fn = this[method];
+	this[method] = function() {
+		console.log('wrapper', method);
+		var args = Array.prototype.slice.call(arguments);
+		this.prepareProxyCheckService(function() {
+			console.log('prepareProxyCheckService.callback');
+			fn.apply(undefined, args);
+		});
+	}.bind(this);
+}, ProxyVerifier);

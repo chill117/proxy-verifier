@@ -7,18 +7,18 @@ var expect = require('chai').expect;
 var ProxyVerifier = require('../../');
 var helpers = require('../helpers');
 
-describe('testAnonymityLevel(proxy[, options], cb)', function() {
+describe.only('testAnonymityLevel(proxy[, options], cb)', function() {
 
-	var appServer;
+	// var appServer;
 
-	before(function() {
-		appServer = helpers.createAppServer(3001, '127.0.0.1');
-	});
+	// before(function() {
+	// 	appServer = helpers.createAppServer(3001, '127.0.0.1');
+	// });
 
-	after(function() {
-		appServer.http.close();
-		appServer.https.close();
-	});
+	// after(function() {
+	// 	appServer.http.close();
+	// 	appServer.https.close();
+	// });
 
 	it('should be a function', function() {
 		expect(ProxyVerifier.testAnonymityLevel).to.be.a('function');
@@ -65,7 +65,7 @@ describe('testAnonymityLevel(proxy[, options], cb)', function() {
 			});
 		});
 
-		it('should return NULL when test URL is inaccessible', function(done) {
+		it.only('should return NULL when test URL is inaccessible', function(done) {
 
 			var proxyServer = proxyServers.elite[0];
 
@@ -76,14 +76,14 @@ describe('testAnonymityLevel(proxy[, options], cb)', function() {
 			};
 
 			var options = {
-				testUrl: 'http://127.0.0.1:3001/does-not-exist',
+				// testUrl: 'http://127.0.0.1:3001/does-not-exist',
 				requestOptions: {
 					strictSSL: false,
 					agentOptions: {
 						rejectUnauthorized: false
 					},
-					timeout: 100
-				}
+					timeout: 1000,
+				},
 			};
 
 			ProxyVerifier.testAnonymityLevel(proxy, options, function(error, result) {
@@ -115,8 +115,8 @@ describe('testAnonymityLevel(proxy[, options], cb)', function() {
 					};
 
 					var options = {
-						testUrl: 'http://127.0.0.1:3001/check',
-						ipAddressCheckUrl: 'http://127.0.0.1:3001/check',
+						// testUrl: 'http://127.0.0.1:3001/check',
+						// ipAddressCheckUrl: 'http://127.0.0.1:3001/check',
 						requestOptions: {
 							strictSSL: false,
 							agentOptions: {
