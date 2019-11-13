@@ -6,12 +6,16 @@ var expect = require('chai').expect;
 var ProxyVerifier = require('../../');
 var helpers = require('../helpers');
 
-describe('testAll(proxy[, options], cb)', function() {
+describe.only('testAll(proxy[, options], cb)', function() {
 
 	var appServer;
-
-	before(function() {
+	before(function(done) {
 		appServer = helpers.createAppServer(3001, '127.0.0.1');
+		ProxyVerifier.createSecureTunnel(3001, function(error, secureTunnelUrl) {
+			if (error) return done(error);
+			appServer.url = secureTunnelUrl;
+			done();
+		});
 	});
 
 	after(function() {
@@ -50,7 +54,7 @@ describe('testAll(proxy[, options], cb)', function() {
 
 				var options = {
 					testUrl: 'https://127.0.0.1:3002/check',
-					ipAddressCheckUrl: 'http://127.0.0.1:3001/check',
+					ipAddressCheckUrl: appServer.url + '/check',
 					requestOptions: {
 						strictSSL: false,
 						agentOptions: {

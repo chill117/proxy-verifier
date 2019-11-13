@@ -474,7 +474,6 @@ var ProxyVerifier = module.exports = {
 					console.log(this._ipAddressCheckUrl);
 					this.queues.onProxyCheckServiceReady.resume();
 					this._preparingProxyCheckService = false;
-					cb();
 				}.bind(this));
 			}.bind(this));
 		}
@@ -482,11 +481,13 @@ var ProxyVerifier = module.exports = {
 
 	createSecureTunnel: function(port, cb) {
 
+		console.log('createSecureTunnel: ', port)
 		ngrok.connect({
 			proto: 'http',
 			addr: port,
 			region: 'eu',
 		}).then(function(secureTunnelUrl) {
+			console.log('Secure tunnel ready', secureTunnelUrl);
 			cb(null, secureTunnelUrl);
 		}).catch(cb);
 	},
@@ -510,26 +511,31 @@ var ProxyVerifier = module.exports = {
 		app.server = app.listen(port, function(error) {
 
 			if (error) {
+				console.log('Failed to listen at http://localhost:' + port);
 				return cb(error);
 			}
 
+			console.log('Proxy check server now listening at http://localhost:' + port);
 			cb(null, app);
 		});
 	},
 
 	close: function(cb) {
 
+		console.log('close');
 		this.killQueues();
 		this.stopProxyCheckService(cb);
 	},
 
 	killQueues: function() {
 
+		console.log('killQueues');
 		_.invoke(this.queues, 'kill');
 	},
 
 	stopProxyCheckService: function(cb) {
 
+		console.log('stopProxyCheckService');
 		async.parallel([
 			this.stopSecureTunnel.bind(this),
 			this.stopProxyCheckServer.bind(this),
@@ -538,18 +544,28 @@ var ProxyVerifier = module.exports = {
 
 	stopSecureTunnel: function(cb) {
 
+		console.log('stopSecureTunnel');
 		ngrok.kill().then(function() {
+			console.log('secure tunnel stopped');
 			cb();
 		}).catch(cb);
 	},
 
 	stopProxyCheckServer: function(cb) {
 
-		if (this.proxyCheckServiceIsReady()) {
-			var app = this._proxyCheckService;
-			app.server.close(function() {
+		console.log('stopProxyCheckServer');
+		var app = this._proxyCheckService;
+		if (app && app.server) {
+			app.server.close(function(error) {
+				if (error) {
+					console.log('failed to close proxy check server', error);
+					return cb(error);
+				}
+				console.log('proxy check server closed');
 				cb();
 			});
+		} else {
+			cb();
 		}
 	},
 
@@ -651,8 +667,8 @@ ProxyVerifier.loadCountryDataSync = deprecate.function(
 );
 
 process.on('SIGINT', function() {
-	// NodeJS process interrupted - kill ngrok process.
-	ngrok.kill();
+	// NodeJS process interrupted.
+	ProxyVerifier.close(_.noop);
 });
 
 ProxyVerifier.prepareQueues();
@@ -670,8 +686,8 @@ _.each([
 	this[method] = function() {
 		console.log('wrapper', method);
 		var args = Array.prototype.slice.call(arguments);
-		this.prepareProxyCheckService(function() {
-			console.log('prepareProxyCheckService.callback');
+		this.prepareProxyCheckService(function(error) {
+			console.log('prepareProxyCheckService.callback', error);
 			fn.apply(undefined, args);
 		});
 	}.bind(this);

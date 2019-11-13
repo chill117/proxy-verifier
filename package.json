@@ -15,7 +15,7 @@
     "prepublish": "npm run test",
     "pretest": "npm run lint",
     "test": "npm run test:unit",
-    "test:unit": "./node_modules/.bin/mocha test/unit/ --timeout 600000 --recursive --reporter spec --ui bdd"
+    "test:unit": "./node_modules/.bin/mocha test/unit/ --recursive --reporter spec --ui bdd"
   },
   "repository": {
     "type": "git",

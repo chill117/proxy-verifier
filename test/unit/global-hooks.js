@@ -5,5 +5,5 @@ var ProxyVerifier = require('../../');
 console.log('unit/global-hooks')
 
 after(function(done) {
-	ProxyVerifier.stopProxyCheckService(done);
+	ProxyVerifier.close(done);
 });
