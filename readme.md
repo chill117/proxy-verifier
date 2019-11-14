@@ -1,6 +1,6 @@
 # proxy-verifier
 
-[![Build Status](https://travis-ci.org/chill117/proxy-verifier.svg?branch=master)](https://travis-ci.org/chill117/proxy-verifier) [![Status of Dependencies](https://david-dm.org/chill117/proxy-verifier.svg)](https://david-dm.org/chill117/proxy-verifier)
+[![Build Status](https://travis-ci.org/chill117/proxy-verifier.svg?branch=master)](https://travis-ci.org/chill117/proxy-verifier)
 
 Checks proxies for the following:
 * That they work as a proxy
