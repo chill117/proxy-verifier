@@ -173,9 +173,15 @@ var ProxyVerifier = module.exports = {
 			var anonymityLevel;
 			var myIpAddress = results.myIpAddress;
 			var withProxy = results.test;
+			var ipAddressMatches = withProxy.data.ipAddress === myIpAddress;
+			var ipAddressRegEx = /[:.0-9a-z%]+/g;
+			var anyHeaderContainsIpAddress = _.chain(withProxy.data.headers).find(function(value, key) {
+				var matches = value.match(ipAddressRegEx);
+				return _.contains(matches, myIpAddress);
+			}).value();
 
-			// If the requesting host's IP address is in any of the headers, then "transparent".
-			if (withProxy.data.ipAddress === myIpAddress || _.contains(_.values(withProxy.data.headers), myIpAddress)) {
+			// If the IP address matches ours or if any of the headers contain our IP address, then "transparent".
+			if (ipAddressMatches || anyHeaderContainsIpAddress) {
 				anonymityLevel = 'transparent';
 			} else {
 
