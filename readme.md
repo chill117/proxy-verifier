@@ -2,12 +2,7 @@
 
 [![Build Status](https://travis-ci.org/chill117/proxy-verifier.svg?branch=master)](https://travis-ci.org/chill117/proxy-verifier)
 
-Checks proxies for the following:
-* That they work as a proxy
-* Which protocol(s) they support (HTTP, HTTPS, SOCKS4, and/or SOCKS5)
-* Level of anonymity (transparent, anonymous, or elite)
-* Tunneling support (HTTPS over HTTP)
-
+* [Overview](#overview)
 * [Installation](#installation)
 * [API](#api)
 	* [testAll](#testall)
@@ -21,6 +16,15 @@ Checks proxies for the following:
 * [Changelog](#changelog)
 * [License](#license)
 * [Funding](#funding)
+
+
+## Overview
+
+Use this module to check proxies for the following:
+* That they work as a proxy
+* Which protocol(s) they support (HTTP, HTTPS, SOCKS4, and/or SOCKS5)
+* Level of anonymity (transparent, anonymous, or elite)
+* Tunneling support (HTTPS over HTTP)
 
 
 ## Installation
