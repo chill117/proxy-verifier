@@ -2,7 +2,8 @@
 
 [![Build Status](https://travis-ci.org/chill117/proxy-verifier.svg?branch=master)](https://travis-ci.org/chill117/proxy-verifier)
 
-* [Overview](#overview)
+Check that proxies are working, verify their anonymity level (transparent, anonymous, or elite), lookup their geographic location by IP address, check for other capabilities such as tunneling and available protocols (HTTP/S, SOCKS4/5).
+
 * [Installation](#installation)
 * [API](#api)
 	* [testAll](#testall)
@@ -16,15 +17,6 @@
 * [Changelog](#changelog)
 * [License](#license)
 * [Funding](#funding)
-
-
-## Overview
-
-Use this module to check proxies for the following:
-* That they work as a proxy
-* Which protocol(s) they support (HTTP, HTTPS, SOCKS4, and/or SOCKS5)
-* Level of anonymity (transparent, anonymous, or elite)
-* Tunneling support (HTTPS over HTTP)
 
 
 ## Installation
