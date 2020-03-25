@@ -8,17 +8,31 @@ Checks proxies for the following:
 * Level of anonymity (transparent, anonymous, or elite)
 * Tunneling support (HTTPS over HTTP)
 
+* [Installation](#installation)
+* [API](#api)
+	* [testAll](#testall)
+	* [testProtocol](#testprotocol)
+	* [testProtocols](#testprotocols)
+	* [testAnonymityLevel](#testanonymitylevel)
+	* [test](#test)
+* [Contributing](#contributing)
+	* [Configure Local Environment](#configure-local-environment)
+	* [Tests](#tests)
+* [Changelog](#changelog)
+* [License](#license)
+* [Funding](#funding)
+
 
 ## Installation
 
 Add to your application via `npm`:
-```
+```bash
 npm install proxy-verifier --save
 ```
 This will install `proxy-verifier` and add it to your application's `package.json` file.
 
 
-## How to Use
+## API
 
 * [testAll](#testall)
 * [testProtocol](#testprotocol)
@@ -251,7 +265,7 @@ Sample `result` when the proxy does not support tunneling:
 ```
 
 
-### Test
+### test
 
 Use this method to create your custom tests. Example usage:
 ```js
@@ -281,11 +295,31 @@ There are a number of ways you can contribute:
 * **Request a feature** - Again, please review the [existing issues](https://github.com/chill117/proxy-verifier/issues) before posting a feature request. If you can't find an existing one that covers your feature idea, please [create a new one](https://github.com/chill117/proxy-verifier/issues).
 * **Fix a bug** - Have a look at the [existing issues](https://github.com/chill117/proxy-verifier/issues) for the project. If there's a bug in there that you'd like to tackle, please feel free to do so. I would ask that when fixing a bug, that you first create a failing test that proves the bug. Then to fix the bug, make the test pass. This should hopefully ensure that the bug never creeps into the project again. After you've done all that, you can [submit a pull request](https://github.com/chill117/proxy-verifier/pulls/new) with your changes.
 
+Before you contribute code, please read through at least some of the source code for the project. I would appreciate it if any pull requests for source code changes follow the coding style of the rest of the project.
 
-## Tests
+Now if you're still interested, you'll need to get your local environment configured.
 
-To run all tests:
+### Configure Local Environment
+
+#### Step 1: Get the Code
+
+First, you'll need to pull down the code from GitHub:
 ```
+git clone https://github.com/chill117/proxy-verifier.git
+```
+
+#### Step 2: Install Dependencies
+
+Second, you'll need to install the project dependencies as well as the dev dependencies. To do this, simply run the following from the directory you created in step 1:
+```bash
+npm install
+```
+
+
+### Tests
+
+This project includes an automated regression test suite. To run the tests:
+```bash
 npm test
 ```
 
@@ -293,3 +327,14 @@ npm test
 ## Changelog
 
 See [changelog.md](https://github.com/chill117/proxy-verifier/blob/master/changelog.md)
+
+
+## License
+
+This software is [MIT licensed](https://tldrlegal.com/license/mit-license):
+> A short, permissive software license. Basically, you can do whatever you want as long as you include the original copyright and license notice in any copy of the software/source.  There are many variations of this license in use.
+
+
+## Funding
+
+This project is free and open-source. If you would like to show your appreciation by helping to fund the project's continued development and maintenance, you can find available options [here](https://degreesofzero.com/donate.html?project=proxy-verifier).

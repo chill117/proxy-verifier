@@ -26,6 +26,10 @@
     "email": "chill@degreesofzero.com"
   },
   "license": "MIT",
+  "funding": {
+    "type" : "individual",
+    "url" : "https://degreesofzero.com/donate.html?project=proxy-verifier"
+  },
   "readmeFilename": "readme.md",
   "bugs": {
     "url": "https://github.com/chill117/proxy-verifier/issues"
