@@ -27,8 +27,8 @@
   },
   "license": "MIT",
   "funding": {
-    "type" : "individual",
-    "url" : "https://degreesofzero.com/donate.html?project=proxy-verifier"
+    "type": "individual",
+    "url": "https://degreesofzero.com/donate.html?project=proxy-verifier"
   },
   "readmeFilename": "readme.md",
   "bugs": {
@@ -37,7 +37,7 @@
   "dependencies": {
     "async": "3.2.0",
     "depd": "2.0.0",
-    "geoip-native-lite": "1.0.0",
+    "geoip-lite": "1.4.1",
     "proxy-agent": "3.1.1",
     "request": "2.88.2",
     "underscore": "1.9.2"

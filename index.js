@@ -3,7 +3,7 @@
 var _ = require('underscore');
 var async = require('async');
 var deprecate = require('depd')('ProxyVerifier');
-var GeoIpNativeLite = require('geoip-native-lite');
+var geoip = require('geoip-lite');
 var ProxyAgent = require('proxy-agent');
 var request = require('request');
 var url = require('url');
@@ -499,7 +499,8 @@ ProxyVerifier.tunnel = deprecate.function(
 
 var lookupCountry = function(proxy) {
 	proxy = ProxyVerifier.normalizeProxy(proxy);
-	return GeoIpNativeLite.lookup(proxy.ipAddress);
+	var geo = geoip.lookup(proxy.ipAddress);
+	return geo.country.toLowerCase();
 };
 
 ProxyVerifier.lookupCountry = deprecate.function(
@@ -514,14 +515,15 @@ ProxyVerifier.country = deprecate.function(
 
 ProxyVerifier.loadCountryData = deprecate.function(
 	function(options, cb) {
-		GeoIpNativeLite.loadData(options, cb);
+		// Do nothing.
+		_.delay(cb);
 	},
 	'loadCountryData() has been deprecated and will be removed in a future release'
 );
 
 ProxyVerifier.loadCountryDataSync = deprecate.function(
 	function(options) {
-		return GeoIpNativeLite.loadDataSync(options);
+		// Do nothing.
 	},
 	'loadCountryDataSync() has been deprecated and will be removed in a future release'
 );
