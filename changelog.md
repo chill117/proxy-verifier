@@ -1,5 +1,7 @@
 # Changelog
 
+* v0.5.0:
+  * Use ifconfig.me as default proxy check service
 * v0.4.4:
   * Upgraded dependencies
 * v0.4.3:
