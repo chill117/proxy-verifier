@@ -1,6 +1,6 @@
 # proxy-verifier
 
-[![Build Status](https://travis-ci.org/chill117/proxy-verifier.svg?branch=master)](https://travis-ci.org/chill117/proxy-verifier)
+![Build Status](https://github.com/chill117/proxy-verifier/actions/workflows/ci.yml/badge.svg)
 
 Check that proxies are working, verify their anonymity level (transparent, anonymous, or elite), lookup their geographic location by IP address, check for other capabilities such as tunneling and available protocols (HTTP/S, SOCKS4/5).
 

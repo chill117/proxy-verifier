@@ -1,4 +1,4 @@
 test/
+.github/workflows/
 .gitignore
 .npmignore
-.travis.yml
