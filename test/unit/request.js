@@ -43,11 +43,7 @@ describe('request(method, url[, options], cb)', function() {
 				expect(error).to.equal(null);
 				expect(status).to.equal(200);
 				expect(data).to.be.an('object');
-				expect(_.has(data, 'ipAddress')).to.equal(true);
-				expect(_.has(data, 'headers')).to.equal(true);
-				expect(data.ipAddress).to.equal(localAddress);
-				expect(data.headers).to.be.an('object');
-				expect(data.headers.host).to.equal(host + ':' + port);
+				expect(data.ip_addr).to.equal(localAddress);
 
 			} catch (error) {
 				return done(error);
@@ -111,11 +107,7 @@ describe('request(method, url[, options], cb)', function() {
 									expect(error).to.equal(null);
 									expect(status).to.equal(200);
 									expect(data).to.be.an('object');
-									expect(_.has(data, 'ipAddress')).to.equal(true);
-									expect(_.has(data, 'headers')).to.equal(true);
-									expect(data.ipAddress).to.equal(proxy.ipAddress);
-									expect(data.headers).to.be.an('object');
-									expect(data.headers.host).to.equal(targetHost + ':' + targetPort);
+									expect(data.ip_addr).to.equal(proxy.ipAddress);
 
 								} catch (error) {
 									return done(error);

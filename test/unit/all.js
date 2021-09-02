@@ -23,6 +23,50 @@ describe('testAll(proxy[, options], cb)', function() {
 		expect(ProxyVerifier.testAll).to.be.a('function');
 	});
 
+	describe('local proxy', function() {
+
+		var proxyProtocol = 'http';
+		var proxyServer;
+
+		before(function() {
+			proxyServer = helpers.createProxyServer(5050, '0.0.0.0');
+		});
+
+		after(function() {
+			proxyServer.close();
+			proxyServer.http.close();
+			proxyServer.https.close();
+		});
+
+		it('default proxy check service', function(done) {
+
+			var proxy = {
+				ipAddress: proxyServer[proxyProtocol].address().address,
+				port: proxyServer[proxyProtocol].address().port,
+				protocols: [proxyProtocol]
+			};
+
+			var options = {};
+
+			ProxyVerifier.testAll(proxy, options, function(error, result) {
+
+				try {
+					expect(error).to.equal(null);
+					expect(result).to.be.an('object');
+					expect(result.anonymityLevel).to.equal('transparent');
+					expect(result.tunnel).to.be.an('object');
+					expect(result.tunnel.ok).to.equal(true);
+					expect(result.protocols).to.be.an('object');
+					expect(result.protocols[proxyProtocol]).to.be.an('object');
+					expect(result.protocols[proxyProtocol].ok).to.equal(true);
+				} catch (error) {
+					return done(error);
+				}
+				done();
+			});
+		});
+	});
+
 	describe('good proxy', function() {
 
 		var proxyProtocols = ['http'];

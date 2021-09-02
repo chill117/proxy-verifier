@@ -12,9 +12,9 @@ var httpStatusCodes = require('./httpStatusCodes');
 
 var ProxyVerifier = module.exports = {
 
-	_defaultTestUrl: 'http://bitproxies.eu/api/v2/check',
-	_ipAddressCheckUrl: 'https://bitproxies.eu/api/v2/check',
-	_tunnelTestUrl: 'https://bitproxies.eu/api/v2/check',
+	_defaultTestUrl: 'https://ifconfig.me/all.json',
+	_ipAddressCheckUrl: 'https://ifconfig.me/all.json',
+	_tunnelTestUrl: 'https://ifconfig.me/all.json',
 
 	/*
 		Array of header keys for exact matching.
@@ -173,10 +173,10 @@ var ProxyVerifier = module.exports = {
 			var anonymityLevel;
 			var myIpAddress = results.myIpAddress;
 			var withProxy = results.test;
-			var ipAddressMatches = withProxy.data.ipAddress === myIpAddress;
+			var ipAddressMatches = !!myIpAddress && withProxy.data.ip_addr === myIpAddress;
 			var ipAddressRegEx = /[:.0-9a-z%]+/g;
-			var anyHeaderContainsIpAddress = _.chain(withProxy.data.headers).find(function(value, key) {
-				var matches = value.match(ipAddressRegEx);
+			var anyHeaderContainsIpAddress = !!_.chain(withProxy.data).find(function(value, key) {
+				var matches = value.toString().match(ipAddressRegEx);
 				return _.contains(matches, myIpAddress);
 			}).value();
 
@@ -187,7 +187,7 @@ var ProxyVerifier = module.exports = {
 
 				var proxyHeaders = ProxyVerifier._proxyHeaders;
 				var proxyKeywords = ProxyVerifier._proxyRelatedHeaderKeywords;
-				var headerKeys = _.keys(withProxy.data.headers);
+				var headerKeys = _.keys(withProxy.data);
 
 				var hasProxyHeaders = _.some(proxyHeaders, function(proxyHeader) {
 					return _.contains(headerKeys, proxyHeader) || _.some(headerKeys, function(headerKey) {
@@ -449,7 +449,7 @@ var ProxyVerifier = module.exports = {
 	_getIpAddressFromCheckProxyServiceResponse: function(data, status, headers) {
 
 		ProxyVerifier._checkProxyServiceResponse(data, status, headers);
-		return data.ipAddress;
+		return data.ip_addr;
 	},
 
 	_checkProxyServiceResponse: function(data, status, headers) {
@@ -459,7 +459,7 @@ var ProxyVerifier = module.exports = {
 		if (status >= 300) {
 			error = new Error(httpStatusCodes[status] || '');
 			error.code = 'HTTP_ERROR_' + status;
-		} else if (status !== 200 && !_.isObject(data) && !_.has(data, 'ipAddress') && !_.has(data, 'headers')) {
+		} else if (status !== 200 && !_.isObject(data) && !_.has(data, 'ip_addr')) {
 			error = new Error('Failed to reach proxy check service.');
 			error.code = 'FAILED_TO_REACH_PROXY_SERVICE';
 		}

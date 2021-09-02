@@ -17,13 +17,7 @@ module.exports = {
 		var app = express();
 
 		app.get('/check', function(req, res) {
-
-			var ipAddress = req.connection.remoteAddress;
-
-			res.status(200).json({
-				ipAddress: ipAddress,
-				headers: req.headers
-			});
+			res.status(200).json(_.extend({}, { ip_addr: req.ip }, req.headers));
 		});
 
 		app.http = http.createServer(app).listen(port, host);

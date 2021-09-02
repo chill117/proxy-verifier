@@ -12,7 +12,7 @@
   "main": "index.js",
   "scripts": {
     "test": "npm run test:unit",
-    "test:unit": "./node_modules/.bin/mocha test/unit/ --recursive --reporter spec --ui bdd"
+    "test:unit": "./node_modules/.bin/mocha test/unit/ --recursive --reporter spec --ui bdd --exit"
   },
   "repository": {
     "type": "git",
