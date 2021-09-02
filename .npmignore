@@ -1,5 +1,4 @@
 test/
-.eslintrc.js
 .gitignore
 .npmignore
 .travis.yml
