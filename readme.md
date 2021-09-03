@@ -281,6 +281,34 @@ ProxyVerifier.test(proxy, {
 });
 ```
 
+## Passing options to request
+In case you want to pass options to the [request](https://github.com/request/request) call itself, pass them through **requestOptions** key within the  options parameter:
+
+Usage:
+```js
+var ProxyVerifier = require('proxy-verifier');
+
+var proxy = {
+	ipAddress: '127.0.0.1',
+	port: 8080,
+	protocol: 'http'
+};
+
+var options = {
+	requestOptions: {
+		timeout: 3000
+	}
+};
+
+ProxyVerifier.testAnonymityLevel(proxy, options, function(error, anonymityLevel) {
+
+	if (error) {
+		// Some unusual error occurred.
+	} else {
+		// anonymityLevel will be a string equal to "transparent", "anonymous", or "elite".
+	}
+});
+```
 
 ## Contributing
 
